@@ -1,0 +1,20 @@
+{% load static %}
+
+<h1>Smart Expense Analyzer</h1>
+
+<form action="/add" method="POST">
+    <input name="amount" placeholder="Amount" required>
+    <input name="description" placeholder="Description" required>
+
+    <select name="type">
+        <option value="">Auto Detect</option>
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+    </select>
+
+    <button type="submit">Add</button>
+</form>
+
+<a href="/transactions">View Transactions</a>
+<a href="/insights">Insights</a>
+<a href="/balance">Balance</a>

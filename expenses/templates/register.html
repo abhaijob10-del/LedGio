@@ -1,0 +1,251 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Register | LedGio</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+
+<div class="auth-page">
+
+    <div class="auth-brand">
+
+        <h1>LedGio</h1>
+
+        <p>
+            Start your personal finance journey with a secure and intelligent tracker.
+        </p>
+
+    </div>
+
+    <div class="auth-card">
+
+        <p class="balance-label">Create account</p>
+
+        <h2>Register</h2>
+ {% if error %}
+    <div class="auth-error">
+        {{ error }}
+    </div>
+ {% endif %}
+
+<form method="POST" autocomplete="off">
+
+    {% csrf_token %}
+
+    <input type="text"
+       id="username"
+       name="username"
+       placeholder="Username"
+       autocomplete="off"
+       required>
+
+<p id="usernameMsg" class="live-msg"></p>
+
+<input type="email"
+       id="email"
+       name="email"
+       placeholder="Email"
+       autocomplete="email"
+       required>
+
+<p id="emailMsg" class="live-msg"></p>
+
+<div class="password-wrapper">
+
+    <input type="password"
+           id="password"
+           name="password"
+           placeholder="Password"
+           autocomplete="new-password"
+           required>
+
+    <span class="toggle-password"
+      onclick="togglePassword('password', this)">
+    Show
+</span>
+
+</div>
+
+<div class="password-strength">
+    <div id="strengthBar"></div>
+</div>
+
+<p id="passwordMsg" class="live-msg"></p>
+
+<div class="password-wrapper">
+
+    <input type="password"
+           id="confirmPassword"
+           name="confirm_password"
+           placeholder="Confirm Password"
+           autocomplete="new-password"
+           required>
+
+    <span class="toggle-password"
+      onclick="togglePassword('confirmPassword', this)">
+    Show
+</span>
+
+</div>
+
+<p id="confirmMsg" class="live-msg"></p>
+
+    <button class="btn btn-primary" type="submit">
+        Register
+    </button>
+
+</form>
+
+        <p class="auth-link">
+            Already have an account?
+            <a href="/login/">Login</a>
+        </p>
+
+    </div>
+
+</div>
+<script>
+const usernameInput = document.getElementById("username");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const confirmInput = document.getElementById("confirmPassword");
+
+const usernameMsg = document.getElementById("usernameMsg");
+const emailMsg = document.getElementById("emailMsg");
+const passwordMsg = document.getElementById("passwordMsg");
+const confirmMsg = document.getElementById("confirmMsg");
+const strengthBar = document.getElementById("strengthBar");
+
+function checkAvailability(){
+
+    const username = usernameInput.value;
+    const email = emailInput.value;
+
+    fetch(`/check-user/?username=${username}&email=${email}`)
+        .then(response => response.json())
+        .then(data => {
+
+            if(username.length > 0){
+
+                if(data.username_exists){
+                    usernameMsg.innerText = "Username already exists.";
+                    usernameMsg.className = "live-msg error-msg";
+                }else{
+                    usernameMsg.innerText = "Username available.";
+                    usernameMsg.className = "live-msg success-msg";
+                }
+
+            }else{
+                usernameMsg.innerText = "";
+            }
+
+            if(email.length > 0){
+
+                if(data.email_exists){
+                    emailMsg.innerText = "Email already registered.";
+                    emailMsg.className = "live-msg error-msg";
+                }else{
+                    emailMsg.innerText = "Email available.";
+                    emailMsg.className = "live-msg success-msg";
+                }
+
+            }else{
+                emailMsg.innerText = "";
+            }
+
+        });
+}
+
+function checkPasswordStrength(){
+
+    const password = passwordInput.value;
+
+    let score = 0;
+
+    if(password.length >= 8) score++;
+    if(/[A-Z]/.test(password)) score++;
+    if(/[a-z]/.test(password)) score++;
+    if(/[0-9]/.test(password)) score++;
+    if(/[^A-Za-z0-9]/.test(password)) score++;
+
+    let strength = "";
+    let width = "0%";
+    let color = "#ef4444";
+
+    if(password.length === 0){
+        passwordMsg.innerText = "";
+        strengthBar.style.width = "0%";
+        return;
+    }
+
+    if(score <= 2){
+        strength = "Weak password. Use uppercase, lowercase, number and symbol.";
+        width = "35%";
+        color = "#ef4444";
+    }else if(score <= 4){
+        strength = "Medium password. Add more variety for stronger security.";
+        width = "70%";
+        color = "#f59e0b";
+    }else{
+        strength = "Strong password.";
+        width = "100%";
+        color = "#22c55e";
+    }
+
+    passwordMsg.innerText = strength;
+    passwordMsg.className = score >= 5 ? "live-msg success-msg" : "live-msg error-msg";
+
+    strengthBar.style.width = width;
+    strengthBar.style.background = color;
+}
+
+function checkConfirmPassword(){
+
+    if(confirmInput.value.length === 0){
+        confirmMsg.innerText = "";
+        return;
+    }
+
+    if(confirmInput.value === passwordInput.value){
+        confirmMsg.innerText = "Passwords match.";
+        confirmMsg.className = "live-msg success-msg";
+    }else{
+        confirmMsg.innerText = "Passwords do not match.";
+        confirmMsg.className = "live-msg error-msg";
+    }
+}
+
+usernameInput.addEventListener("input", checkAvailability);
+emailInput.addEventListener("input", checkAvailability);
+passwordInput.addEventListener("input", function(){
+    checkPasswordStrength();
+    checkConfirmPassword();
+});
+confirmInput.addEventListener("input", checkConfirmPassword);
+</script>
+
+<script>
+
+
+function togglePassword(inputId, button){
+
+    const input = document.getElementById(inputId);
+
+    if(input.type === "password"){
+        input.type = "text";
+        button.textContent = "Hide";
+    }else{
+        input.type = "password";
+        button.textContent = "Show";
+    }
+}
+</script>
+
+</body>
+
+</html>

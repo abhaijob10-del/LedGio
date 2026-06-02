@@ -1,0 +1,97 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login | LedGio</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+
+<div class="auth-page">
+
+    <div class="auth-brand">
+
+        <h1>LedGio</h1>
+
+        <p>
+            Track your income, expenses, and financial health in one premium dashboard.
+        </p>
+
+    </div>
+
+    <div class="auth-card">
+
+        <p class="balance-label">Welcome back</p>
+
+        <h2>Login</h2>
+        
+        {% if form.errors %}
+        <div class="auth-error">
+           Invalid username or password.
+        </div>
+        {% endif %}
+
+        <form method="POST" autocomplete="off">
+
+    {% csrf_token %}
+
+    <input type="text"
+           name="username"
+           placeholder="Username"
+           autocomplete="username"
+           required>
+
+    <div class="password-wrapper">
+
+    <input type="password"
+       id="loginPassword"
+       name="password"
+       placeholder="Password"
+       autocomplete="new-password"
+       readonly
+       onfocus="this.removeAttribute('readonly');"
+       required>
+
+    <span class="toggle-password"
+      onclick="togglePassword('loginPassword', this)">
+    VIEW
+</span>
+
+</div>
+
+    <button class="btn btn-primary" type="submit">
+        Login
+    </button>
+
+</form>
+
+        <p class="auth-link">
+            Don't have an account?
+            <a href="/register/">Create account</a>
+        </p>
+
+    </div>
+
+</div>
+
+<script>
+function togglePassword(inputId, button){
+
+    const input = document.getElementById(inputId);
+
+    if(input.type === "password"){
+        input.type = "text";
+        button.textContent = "Hide";
+    }else{
+        input.type = "password";
+        button.textContent = "Show";
+    }
+}
+</script>  
+
+</body>
+
+</html>

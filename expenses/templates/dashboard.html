@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="dashboard-hero">
+
+        <div>
+            <p class="balance-label">Executive Overview</p>
+
+            <h1>Welcome back, {{ request.user.username }}</h1>
+
+            <p class="subtitle">
+                Here is your complete financial snapshot for today.
+            </p>
+        </div>
+
+        <a href="/profile/" class="profile-circle profile-link">
+          {{ request.user.username|first|upper }}
+        </a>
+
+    </div>
+
+    <div class="cards-grid">
+
+        <div class="dashboard-card income-card">
+            <div class="card-marker income-marker"></div>
+            <h3>Total Income</h3>
+            <h2>₹{{ balance.income }}</h2>
+        </div>
+
+        <div class="dashboard-card expense-card">
+            <div class="card-marker expense-marker"></div>
+            <h3>Total Expense</h3>
+            <h2>₹{{ balance.expense }}</h2>
+        </div>
+
+        <div class="dashboard-card balance-card">
+            <div class="card-marker balance-marker"></div>
+            <h3>Current Balance</h3>
+            <h2>₹{{ balance.balance }}</h2>
+        </div>
+
+        <div class="dashboard-card savings-card">
+            <div class="card-marker savings-marker"></div>
+            <h3>Savings Rate</h3>
+            <h2>
+                {% if balance.income > 0 %}
+                    {% widthratio balance.balance balance.income 100 %}%
+                {% else %}
+                    0%
+                {% endif %}
+            </h2>
+        </div>
+
+    </div>
+
+    <div class="dashboard-main-grid">
+
+        <div class="single-chart-container dashboard-chart">
+
+            <div class="chart-header">
+
+                <div>
+                    <h2>Financial Overview</h2>
+                    <p>Income vs Expense distribution</p>
+
+                    <div class="live-badge">
+                        ● Live Analytics
+                    </div>
+                </div>
+
+                <div class="chart-balance">
+                    ₹{{ balance.balance }}
+                </div>
+
+            </div>
+
+            <div class="chart-wrapper">
+                <canvas id="financeChart"></canvas>
+            </div>
+
+        </div>
+        <div class="single-chart-container">
+
+    <div class="chart-header">
+        <div>
+            <h2>Monthly Trend</h2>
+            <p>Income and expense movement over time.</p>
+        </div>
+    </div>
+
+     <div class="chart-wrapper">
+        <canvas id="monthlyTrendChart"></canvas>
+     </div>
+
+    </div> 
+
+        <div class="recent-panel">
+
+            <h2>Recent Activity</h2>
+
+            {% for transaction in recent_transactions %}
+
+                <div class="recent-row">
+
+                    <div>
+                        <strong>{{ transaction.description }}</strong>
+                        <p>{{ transaction.date|date:"d M Y" }}</p>
+                    </div>
+
+                    {% if transaction.trans_type == "income" %}
+                        <span class="amount-income">
+                            + ₹{{ transaction.amount|cut:"-" }}
+                        </span>
+                    {% else %}
+                        <span class="amount-expense">
+                            - ₹{{ transaction.amount|cut:"-" }}
+                        </span>
+                    {% endif %}
+
+                </div>
+
+            {% empty %}
+
+                <p class="subtitle">
+                    No recent transactions yet.
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <div class="dashboard-insight">
+
+        {% if balance.balance > 0 %}
+            <h3>Quick Insight 💡</h3>
+            <p>
+                You are currently maintaining a positive balance. Keep monitoring your top expense categories to protect your savings.
+            </p>
+        {% else %}
+            <h3>Spending Warning</h3>
+            <p>
+                Your expenses are close to or above your income. Review your spending and reduce non-essential transactions.
+            </p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const financeCtx = document.getElementById('financeChart');
+
+new Chart(financeCtx, {
+
+    type: 'doughnut',
+
+    data: {
+
+        labels: ['Income', 'Expense'],
+
+        datasets: [{
+
+            data: [
+                {{ balance.income }},
+                {{ balance.expense }}
+            ],
+
+            backgroundColor: [
+                '#22c55e',
+                '#ef4444'
+            ],
+
+            borderWidth: 0,
+            hoverOffset: 12
+
+        }]
+    },
+
+    options: {
+
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+
+        plugins: {
+
+            legend: {
+
+                position: 'bottom',
+
+                labels: {
+                    color: '#ffffff',
+                    padding: 20,
+                    font: {
+                        size: 14
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+});
+
+</script>
+
+<script>
+
+const monthlyTrendCtx = document.getElementById('monthlyTrendChart');
+
+new Chart(monthlyTrendCtx, {
+
+    type: 'line',
+
+    data: {
+
+        labels: [
+            {% for month in monthly_analytics.keys %}
+                "{{ month }}",
+            {% endfor %}
+        ],
+
+        datasets: [
+
+            {
+                label: 'Income',
+                data: [
+                    {% for data in monthly_analytics.values %}
+                        {{ data.income }},
+                    {% endfor %}
+                ],
+                borderColor: '#22c55e',
+                tension: 0.4
+            },
+
+            {
+                label: 'Expense',
+                data: [
+                    {% for data in monthly_analytics.values %}
+                        {{ data.expense }},
+                    {% endfor %}
+                ],
+                borderColor: '#ef4444',
+                tension: 0.4
+            }
+
+        ]
+    },
+
+    options: {
+
+        responsive: true,
+        maintainAspectRatio: false,
+
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#ffffff'
+                }
+            }
+        },
+
+        scales: {
+            x: {
+                ticks: {
+                    color: '#94a3b8'
+                }
+            },
+            y: {
+                ticks: {
+                    color: '#94a3b8'
+                }
+            }
+        }
+    }
+
+});
+
+</script>
+
+{% endblock %}

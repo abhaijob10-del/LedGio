@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="page-container">
+
+    <div class="analytics-hero">
+
+        <div>
+            <p class="balance-label">Financial Intelligence</p>
+            <h1>Analytics</h1>
+            <p class="subtitle">
+                Understand your spending patterns and strongest expense areas.
+            </p>
+        </div>
+
+        <div class="analytics-pill">
+            Insights Active
+        </div>
+
+    </div>
+
+    <div class="analytics-grid">
+
+        <div class="analytics-card">
+            <h3>Total Spending</h3>
+            <h2>₹{{ insights.total_spending }}</h2>
+            <p>Your total recorded expenses.</p>
+        </div>
+
+        <div class="analytics-card">
+            <h3>Top Category</h3>
+            <h2>{{ insights.highest_category }}</h2>
+            <p>Your highest spending category.</p>
+        </div>
+
+        <div class="analytics-card">
+            <h3>Category Count</h3>
+            <h2>{{ insights.category_totals|length }}</h2>
+            <p>Expense categories detected.</p>
+        </div>
+
+    </div>
+
+    <div class="analytics-main-grid">
+
+        <div class="single-chart-container analytics-chart-box">
+
+            <div class="chart-header">
+                <div>
+                    <h2>Spending Distribution</h2>
+                    <p>Category-wise expense breakdown.</p>
+                </div>
+
+                <div class="chart-balance">
+                    ₹{{ insights.total_spending }}
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <canvas id="pieChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="category-panel">
+
+            <h2>Category Breakdown</h2>
+
+            {% for category, amount in insights.category_totals.items %}
+
+                <div class="category-row">
+
+                    <div>
+                        <strong>{{ category }}</strong>
+                        <p>Expense category</p>
+                    </div>
+
+                    <span>₹{{ amount }}</span>
+
+                </div>
+
+            {% empty %}
+
+                <p class="subtitle">
+                    No expense data available yet.
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <div class="analytics-message">
+
+        {% if insights.highest_category %}
+            <h3>Smart Insight 💡</h3>
+            <p>
+                Your highest spending area is <strong>{{ insights.highest_category }}</strong>.
+                Try reviewing this category first if you want to reduce expenses.
+            </p>
+        {% else %}
+            <h3>No insights yet</h3>
+            <p>
+                Add a few expense transactions to generate meaningful analytics.
+            </p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<script>
+
+const categoryLabels = [
+    {% for category in insights.category_totals.keys %}
+        "{{ category }}",
+    {% endfor %}
+];
+
+const categoryAmounts = [
+    {% for amount in insights.category_totals.values %}
+        {{ amount }},
+    {% endfor %}
+];
+
+const ctx = document.getElementById('pieChart');
+
+new Chart(ctx, {
+
+    type: 'doughnut',
+
+    data: {
+
+        labels: categoryLabels,
+
+        datasets: [{
+            label: 'Expenses',
+            data: categoryAmounts,
+            borderWidth: 0,
+            hoverOffset: 12
+        }]
+    },
+
+    options: {
+
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+
+        plugins: {
+
+            legend: {
+                position: 'bottom',
+
+                labels: {
+                    color: '#ffffff',
+                    padding: 20,
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ": ₹" + context.raw;
+                    }
+                }
+            }
+        }
+    }
+});
+
+</script>
+
+{% endblock %}

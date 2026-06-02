@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="balance-hero">
+
+        <div>
+            <p class="balance-label">Current Net Balance</p>
+
+            <h1>₹{{ balance.balance }}</h1>
+
+            <p class="subtitle">
+                Your financial position after income and expenses.
+            </p>
+        </div>
+
+        <div class="balance-pill">
+            {% if balance.balance > 0 %}
+                Healthy
+            {% elif balance.balance == 0 %}
+                Neutral
+            {% else %}
+                Risk
+            {% endif %}
+        </div>
+
+    </div>
+
+    <div class="balance-split-grid">
+
+        <div class="balance-panel">
+
+            <h2>Income vs Expense</h2>
+
+            <div class="split-row">
+                <div class="split-info">
+                    <span>Income</span>
+                    <strong>₹{{ balance.income }}</strong>
+                </div>
+
+                <div class="split-track">
+                    <div class="split-fill income-fill" style="width:100%;"></div>
+                </div>
+            </div>
+
+            <div class="split-row">
+                <div class="split-info">
+                    <span>Expense</span>
+                    <strong>₹{{ balance.expense }}</strong>
+                </div>
+
+                <div class="split-track">
+                    <div class="split-fill expense-fill"
+                         style="width:{% if balance.income > 0 %}{% widthratio balance.expense balance.income 100 %}{% else %}0{% endif %}%;">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="balance-panel">
+
+            <h2>Savings Rate</h2>
+
+            <div class="savings-circle">
+
+                <span>
+                    {% if balance.income > 0 %}
+                        {% widthratio balance.balance balance.income 100 %}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </span>
+
+            </div>
+
+            <p class="subtitle center-text">
+                Percentage of income remaining after expenses.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="single-chart-container">
+
+        <div class="chart-header">
+            <div>
+                <h2>Balance Health</h2>
+                <p>How much of your income is used by expenses.</p>
+            </div>
+
+            <div class="chart-balance">
+                ₹{{ balance.balance }}
+            </div>
+        </div>
+
+        <div class="balance-progress">
+
+            <div class="progress-track">
+                <div class="progress-fill"
+                     style="width:{% if balance.income > 0 %}{% widthratio balance.expense balance.income 100 %}{% else %}0{% endif %}%;">
+                </div>
+            </div>
+
+            <div class="progress-labels">
+                <span>Expense Usage</span>
+                <span>
+                    {% if balance.income > 0 %}
+                        {% widthratio balance.expense balance.income 100 %}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </span>
+            </div>
+
+        </div>
+
+        <div class="balance-message">
+
+            {% if balance.balance > 0 %}
+                <h3>Good position ✅</h3>
+                <p>You are maintaining a positive balance. Keep tracking your spending and try to increase savings gradually.</p>
+            {% elif balance.balance == 0 %}
+                <h3>Balanced but tight ⚠️</h3>
+                <p>Your income and expenses are equal. Try reducing small recurring expenses to build savings.</p>
+            {% else %}
+                <h3>Overspending alert 🚨</h3>
+                <p>Your expenses are higher than your income. Review your top spending categories immediately.</p>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

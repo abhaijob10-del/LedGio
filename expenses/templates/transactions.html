@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load static %}
+
+<div class="page-container">
+
+    <div class="transactions-hero">
+
+        <div>
+            <p class="balance-label">Money Activity</p>
+            <h1>Transactions</h1>
+            <p class="subtitle">
+                Track, search, and manage your income and expenses.
+            </p>
+        </div>
+
+        <button class="btn btn-primary add-toggle-btn" onclick="toggleForm()">
+            ➕ Add Transaction
+        </button>
+
+    </div>
+
+    <div id="transactionForm" class="form-hidden">
+
+        <div class="form-card transaction-form-card">
+
+            <h1>Add Transaction</h1>
+
+            <form method="POST" action="/add/">
+
+                {% csrf_token %}
+
+                <input type="number" step="0.01" name="amount" placeholder="Enter Amount" required>
+
+                <input type="text" name="description" placeholder="Enter Description" required>
+
+                <select name="type" required>
+                    <option value="">Select Type</option>
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+
+                <input type="date" name="date" required>
+
+                <button type="submit" class="btn btn-primary">
+                    Save Transaction
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+    
+
+    <form method="GET" class="transaction-filter-form">
+
+    <input type="text"
+           name="search"
+           placeholder="Search description..."
+           value="{{ search_query|default:'' }}">
+
+    <input type="month"
+           name="month"
+           value="{{ selected_month|default:'' }}">
+
+    <select name="type">
+
+        <option value="">All Types</option>
+
+        <option value="income"
+            {% if selected_type == "income" %}selected{% endif %}>
+            Income
+        </option>
+
+        <option value="expense"
+            {% if selected_type == "expense" %}selected{% endif %}>
+            Expense
+        </option>
+
+    </select>
+
+    <button type="submit" class="btn btn-primary">
+        Filter
+    </button>
+
+    <a href="/transactions/" class="btn">
+        Reset
+    </a>
+
+</form>
+    {% if transactions %}
+
+    <div class="table-container transaction-table-wrap">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for transaction in transactions %}
+
+                <tr>
+
+                    <td>{{ transaction.date|date:"d M Y" }}</td>
+
+                    <td>
+                        <strong>{{ transaction.description }}</strong>
+                        <p class="transaction-category">{{ transaction.category }}</p>
+                    </td>
+
+                    <td>
+                        {% if transaction.trans_type == "income" %}
+                            <span class="badge badge-income">Income</span>
+                        {% else %}
+                            <span class="badge badge-expense">Expense</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if transaction.trans_type == "income" %}
+                            <span class="amount-income">+ ₹{{ transaction.amount|cut:"-" }}</span>
+                        {% else %}
+                            <span class="amount-expense">- ₹{{ transaction.amount|cut:"-" }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="action-cell">
+
+                        <a href="/edit/{{ transaction.id }}/" class="btn btn-edit">
+                            Edit
+                        </a>
+
+                        <a href="/delete/{{ transaction.id }}/" class="btn btn-danger">
+                            Delete
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state premium-empty">
+
+        <h2>No Transactions Yet</h2>
+
+        <p>
+            Add your first income or expense to start building your financial story.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+<script>
+function toggleForm(){
+    const form = document.getElementById("transactionForm");
+    form.classList.toggle("show-form");
+}
+</script>
+
+{% endblock %}

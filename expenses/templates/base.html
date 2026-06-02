@@ -1,0 +1,70 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LedGio</title>
+
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+</head>
+
+<body>
+   
+    <div class="navbar">
+
+        <div class="logo">
+            LedGio
+        </div>
+
+        <div class="nav-links">
+
+    <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
+        Dashboard
+    </a>
+
+    <a href="/transactions/" class="nav-item {% if '/transactions/' in request.path %}active{% endif %}">
+        Transactions
+    </a>
+
+    <a href="/insights/" class="nav-item {% if '/insights/' in request.path %}active{% endif %}">
+        Analytics
+    </a>
+
+    <a href="/balance/" class="nav-item {% if '/balance/' in request.path %}active{% endif %}">
+        Balance
+    </a>
+
+    <a href="/profile/" class="nav-item {% if '/profile/' in request.path %}active{% endif %}">
+        Profile
+    </a>
+
+    {% if request.user.is_staff %}
+    <a href="/ledgio-admin/"
+       class="nav-item {% if '/ledgio-admin/' in request.path %}active{% endif %}">
+        Admin
+    </a>
+{% endif %}
+
+    <a href="/logout/" class="nav-item">
+        Logout
+    </a>
+
+</div>
+
+    </div>
+
+    <div class="main-container">
+
+        {% block content %}
+
+        {% endblock %}
+
+    </div>
+
+</body>
+
+</html>

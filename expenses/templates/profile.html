@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="profile-hero">
+
+        <div>
+            <p class="balance-label">Account Center</p>
+            <h1>Profile</h1>
+            <p class="subtitle">
+                Manage your LedGio account information.
+            </p>
+        </div>
+
+        <div class="profile-circle profile-large">
+            {{ request.user.username|first|upper }}
+        </div>
+
+    </div>
+
+    <div class="profile-grid">
+
+        <div class="profile-card">
+
+            <h2>Account Details</h2>
+
+            <div class="profile-row">
+                <span>Username</span>
+                <strong>{{ request.user.username }}</strong>
+            </div>
+
+            <div class="profile-row">
+                <span>Email</span>
+                <strong>{{ request.user.email }}</strong>
+            </div>
+
+            <div class="profile-row">
+    <span>Status</span>
+
+    <strong>
+        {% if request.user.is_active %}
+            Active
+        {% else %}
+            Inactive
+        {% endif %}
+    </strong>
+</div>
+
+            <div class="profile-row">
+                <span>Date Joined</span>
+                <strong>{{ request.user.date_joined|date:"d M Y" }}</strong>
+            </div>
+
+            <div class="profile-row">
+                <span>Last Login</span>
+                <strong>{{ request.user.last_login|date:"d M Y, h:i A" }}</strong>
+            </div>
+
+        </div>
+
+        <div class="profile-card">
+
+            <h2>Security</h2>
+
+            <p class="subtitle">
+                Your account is protected using Django authentication and hashed passwords.
+            </p>
+
+            <a href="/logout/" class="btn btn-danger" style="margin-top:25px;">
+                Logout
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
