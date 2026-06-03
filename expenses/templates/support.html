@@ -1,0 +1,76 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Support | LedGio</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+
+    <div class="auth-page">
+
+        <div class="auth-brand">
+
+            <h1>LedGio Support</h1>
+
+            <p>
+                Raise concerns, request account reactivation, or suggest improvements.
+            </p>
+
+        </div>
+
+        <div class="auth-card">
+
+            <p class="balance-label">Help Center</p>
+
+            <h2>Contact Support</h2>
+
+            {% if success %}
+            <div class="auth-success">
+                {{ success }}
+            </div>
+            {% endif %}
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <input type="text" name="username_or_email" placeholder="Username or Email" required>
+
+                <select name="issue_type" required>
+
+                    <option value="">Select Issue Type</option>
+
+                    <option value="improvement">Improvement</option>
+
+                    <option value="concern">Concern</option>
+
+                    <option value="account_deactivated">Account Deactivated</option>
+
+                    <option value="other">Other</option>
+
+                </select>
+
+                <textarea name="message" placeholder="Describe your issue..." required></textarea>
+
+                <button class="btn btn-primary" type="submit">
+                    Submit Request
+                </button>
+
+            </form>
+
+            <p class="auth-link">
+                Back to
+                <a href="/login/">Login</a>
+            </p>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

@@ -9,88 +9,66 @@
 
         <div>
             <p class="balance-label">LedGio Control Center</p>
+
             <h1>Admin Dashboard</h1>
+
             <p class="subtitle">
-                Manage users, account status, and platform access.
+                Platform overview without accessing private financial data.
             </p>
         </div>
 
     </div>
 
-    <div class="table-container">
+    <div class="analytics-grid">
 
-        <table>
+        <div class="analytics-card">
+            <h3>Total Users</h3>
+            <h2>{{ total_users }}</h2>
+            <p>Registered accounts</p>
+        </div>
 
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Date Joined</th>
-                    <th>Last Login</th>
-                    <th>Status</th>
-                    <th>Role</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+        <div class="analytics-card">
+            <h3>Active Users</h3>
+            <h2>{{ active_users }}</h2>
+            <p>Currently active accounts</p>
+        </div>
 
-            <tbody>
+        <div class="analytics-card">
+            <h3>Inactive Users</h3>
+            <h2>{{ inactive_users }}</h2>
+            <p>Accounts needing reactivation</p>
+        </div>
 
-                {% for user in users %}
+        <div class="analytics-card">
+            <h3>Staff Users</h3>
+            <h2>{{ staff_users }}</h2>
+            <p>Admin and support staff</p>
+        </div>
 
-                <tr>
+        <div class="analytics-card">
+            <h3>Open Requests</h3>
+            <h2>{{ open_requests }}</h2>
+            <p>Support tickets pending</p>
+        </div>
 
-                    <td>{{ user.username }}</td>
+    </div>
 
-                    <td>{{ user.email }}</td>
+    <div class="admin-action-grid">
 
-                    <td>{{ user.date_joined|date:"d M Y" }}</td>
+        <a href="/users/" class="admin-action-card">
+            <h2>User Management</h2>
+            <p>View username, email, account status, role, and login activity.</p>
+        </a>
 
-                    <td>
-                        {% if user.last_login %}
-                            {{ user.last_login|date:"d M Y, h:i A" }}
-                        {% else %}
-                            Never
-                        {% endif %}
-                    </td>
+        <a href="/support-inbox/" class="admin-action-card">
+            <h2>Support Inbox</h2>
+            <p>Review concerns, improvements, and account reactivation requests.</p>
+        </a>
 
-                    <td>
-                        {% if user.is_active %}
-                            <span class="badge badge-income">Active</span>
-                        {% else %}
-                            <span class="badge badge-expense">Inactive</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if user.is_staff %}
-                            Admin
-                        {% else %}
-                            User
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if user != request.user %}
-                            <a href="/toggle-user/{{ user.id }}/"
-                               class="btn btn-danger">
-                                {% if user.is_active %}
-                                    Deactivate
-                                {% else %}
-                                    Activate
-                                {% endif %}
-                            </a>
-                        {% else %}
-                            <span class="subtitle">Current Admin</span>
-                        {% endif %}
-                    </td>
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
+        <a href="/staff-management/" class="admin-action-card">
+            <h2>Staff Management</h2>
+            <p>Assign or remove staff access for trusted platform users.</p>
+        </a>
 
     </div>
 

@@ -22,6 +22,30 @@
 
         <div class="nav-links">
 
+{% if request.user.is_staff %}
+
+    <a href="/ledgio-admin/"
+       class="nav-item {% if '/ledgio-admin/' in request.path %}active{% endif %}">
+        Admin Dashboard
+    </a>
+
+    <a href="/users/"
+       class="nav-item {% if '/users/' in request.path %}active{% endif %}">
+        Users
+    </a>
+
+    <a href="/support-inbox/"
+       class="nav-item {% if '/support-inbox/' in request.path %}active{% endif %}">
+        Support Inbox
+    </a>
+
+    <a href="/staff-management/"
+       class="nav-item {% if '/staff-management/' in request.path %}active{% endif %}">
+        Staff Management
+    </a>
+
+{% else %}
+
     <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
         Dashboard
     </a>
@@ -38,16 +62,12 @@
         Balance
     </a>
 
-    <a href="/profile/" class="nav-item {% if '/profile/' in request.path %}active{% endif %}">
+{% endif %}
+
+    <a href="/profile/"
+       class="nav-item {% if '/profile/' in request.path %}active{% endif %}">
         Profile
     </a>
-
-    {% if request.user.is_staff %}
-    <a href="/ledgio-admin/"
-       class="nav-item {% if '/ledgio-admin/' in request.path %}active{% endif %}">
-        Admin
-    </a>
-{% endif %}
 
     <a href="/logout/" class="nav-item">
         Logout

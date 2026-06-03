@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.contrib.auth.decorators import user_passes_test
+from .models import SupportRequest
 
 from .expense_engine import (
     add_transaction,
@@ -230,8 +231,22 @@ def ledgio_admin_view(request):
 
     users = User.objects.all().order_by('-date_joined')
 
+    support_requests = SupportRequest.objects.all().order_by('-created_at')
+
+    total_users = User.objects.count()
+    active_users = User.objects.filter(is_active=True).count()
+    inactive_users = User.objects.filter(is_active=False).count()
+    staff_users = User.objects.filter(is_staff=True).count()
+    open_requests = SupportRequest.objects.filter(status="open").count()
+
     return render(request, 'ledgio_admin.html', {
-        'users': users
+        'users': users,
+        'support_requests': support_requests,
+        'total_users': total_users,
+        'active_users': active_users,
+        'inactive_users': inactive_users,
+        'staff_users': staff_users,
+        'open_requests': open_requests
     })
 
 @login_required
@@ -245,3 +260,82 @@ def toggle_user_status(request, id):
         user.save()
 
     return redirect('/ledgio-admin/')
+
+def support_view(request):
+
+    success = None
+
+    if request.method == "POST":
+
+        username_or_email = request.POST.get("username_or_email")
+        issue_type = request.POST.get("issue_type")
+        message = request.POST.get("message")
+
+        SupportRequest.objects.create(
+            username_or_email=username_or_email,
+            issue_type=issue_type,
+            message=message
+        )
+
+        success = "Your support request has been submitted successfully."
+
+    return render(request, 'support.html', {
+        'success': success
+    })
+
+
+@login_required
+@user_passes_test(is_admin)
+def resolve_support_request(request, id):
+
+    support_request = SupportRequest.objects.get(id=id)
+
+    support_request.status = "resolved"
+
+    support_request.save()
+
+    return redirect('/ledgio-admin/')
+
+
+@login_required
+@user_passes_test(is_admin)
+def activate_user_from_request(request, id):
+
+    support_request = SupportRequest.objects.get(id=id)
+
+    user = User.objects.filter(
+        username=support_request.username_or_email
+    ).first()
+
+    if user is None:
+        user = User.objects.filter(
+            email=support_request.username_or_email
+        ).first()
+
+    if user:
+        user.is_active = True
+        user.save()
+
+        support_request.status = "resolved"
+        support_request.save()
+
+    return redirect('/ledgio-admin/')
+
+@login_required
+@user_passes_test(is_admin)
+def users_view(request):
+
+    users = User.objects.all().order_by('-date_joined')
+
+    search = request.GET.get('search')
+
+    if search:
+        users = users.filter(
+            username__icontains=search
+        ) | users.filter(
+            email__icontains=search
+        )
+
+    return render(request, 'users.html', {
+        'users': users
+    })

@@ -15,4 +15,8 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('ledgio-admin/', views.ledgio_admin_view, name='ledgio_admin'),
     path('toggle-user/<int:id>/', views.toggle_user_status, name='toggle_user_status'),
+    path('support/', views.support_view, name='support'),
+    path('resolve-support/<int:id>/', views.resolve_support_request, name='resolve_support'),
+    path('activate-from-request/<int:id>/', views.activate_user_from_request, name='activate_from_request'),
+    path('users/', views.users_view, name='users'),
 ]
