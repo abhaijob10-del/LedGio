@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="admin-hero">
+
+        <div>
+            <p class="balance-label">Access Control</p>
+
+            <h1>Staff Management</h1>
+
+            <p class="subtitle">
+                Assign or remove staff access for trusted platform users.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Current Role</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for user in users %}
+
+                <tr>
+
+                    <td>{{ user.username }}</td>
+
+                    <td>{{ user.email }}</td>
+
+                    <td>
+                        {% if user.is_staff %}
+                            Staff
+                        {% else %}
+                            User
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if user.is_active %}
+                            <span class="badge badge-income">Active</span>
+                        {% else %}
+                            <span class="badge badge-expense">Inactive</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+
+                        {% if user == request.user %}
+
+                            <span class="subtitle">Current Admin</span>
+
+                        {% else %}
+
+                            <a href="/toggle-staff/{{ user.id }}/"
+                               class="{% if user.is_staff %}btn btn-danger{% else %}btn btn-primary{% endif %}">
+
+                                {% if user.is_staff %}
+                                    Remove Staff
+                                {% else %}
+                                    Make Staff
+                                {% endif %}
+
+                            </a>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

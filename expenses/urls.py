@@ -19,4 +19,7 @@ urlpatterns = [
     path('resolve-support/<int:id>/', views.resolve_support_request, name='resolve_support'),
     path('activate-from-request/<int:id>/', views.activate_user_from_request, name='activate_from_request'),
     path('users/', views.users_view, name='users'),
+    path('support-inbox/', views.support_inbox_view, name='support_inbox'),
+    path('staff-management/', views.staff_management_view, name='staff_management'),
+    path('toggle-staff/<int:id>/', views.toggle_staff_status, name='toggle_staff'),
 ]

@@ -5,6 +5,8 @@ from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.contrib.auth.decorators import user_passes_test
 from .models import SupportRequest
+from django.utils import timezone
+from datetime import timedelta
 
 from .expense_engine import (
     add_transaction,
@@ -224,10 +226,24 @@ def profile_view(request):
 def is_admin(user):
     return user.is_authenticated and user.is_staff
 
+def auto_deactivate_inactive_users():
+
+    six_months_ago = timezone.now() - timedelta(days=180)
+
+    inactive_users = User.objects.filter(
+        is_staff=False,
+        is_active=True,
+        last_login__lt=six_months_ago
+    )
+
+    inactive_users.update(is_active=False)
+
 
 @login_required
 @user_passes_test(is_admin)
 def ledgio_admin_view(request):
+
+    auto_deactivate_inactive_users()
 
     users = User.objects.all().order_by('-date_joined')
 
@@ -325,6 +341,8 @@ def activate_user_from_request(request, id):
 @user_passes_test(is_admin)
 def users_view(request):
 
+    auto_deactivate_inactive_users()
+
     users = User.objects.all().order_by('-date_joined')
 
     search = request.GET.get('search')
@@ -339,3 +357,35 @@ def users_view(request):
     return render(request, 'users.html', {
         'users': users
     })
+@login_required
+@user_passes_test(is_admin)
+def support_inbox_view(request):
+
+    support_requests = SupportRequest.objects.all().order_by('-created_at')
+
+    return render(request, 'support_inbox.html', {
+        'support_requests': support_requests
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def staff_management_view(request):
+
+    users = User.objects.all().order_by('-date_joined')
+
+    return render(request, 'staff_management.html', {
+        'users': users
+    })
+
+
+@login_required
+@user_passes_test(is_admin)
+def toggle_staff_status(request, id):
+
+    user = User.objects.get(id=id)
+
+    if user != request.user:
+        user.is_staff = not user.is_staff
+        user.save()
+
+    return redirect('/staff-management/')

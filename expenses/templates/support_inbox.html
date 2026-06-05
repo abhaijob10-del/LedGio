@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="admin-hero">
+
+        <div>
+            <p class="balance-label">Admin Support Center</p>
+
+            <h1>Support Inbox</h1>
+
+            <p class="subtitle">
+                Review user concerns, improvements, and account reactivation requests.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>User / Email</th>
+                    <th>Issue Type</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for request_item in support_requests %}
+
+                <tr>
+
+                    <td>{{ request_item.username_or_email }}</td>
+
+                    <td>{{ request_item.get_issue_type_display }}</td>
+
+                    <td>{{ request_item.message }}</td>
+
+                    <td>
+                        {% if request_item.status == "open" %}
+                            <span class="badge badge-expense">Open</span>
+                        {% else %}
+                            <span class="badge badge-income">Resolved</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ request_item.created_at|date:"d M Y" }}</td>
+
+                    <td class="action-cell">
+
+                        {% if request_item.status == "open" %}
+
+                            <a href="/resolve-support/{{ request_item.id }}/"
+                               class="btn btn-edit">
+                                Resolve
+                            </a>
+
+                            {% if request_item.issue_type == "account_deactivated" %}
+
+                                <a href="/activate-from-request/{{ request_item.id }}/"
+                                   class="btn btn-primary">
+                                    Activate
+                                </a>
+
+                            {% endif %}
+
+                        {% else %}
+
+                            <span class="subtitle">Done</span>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="6">No support requests yet.</td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}
