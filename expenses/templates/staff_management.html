@@ -67,8 +67,11 @@
 
                         {% else %}
 
-                            <a href="/toggle-staff/{{ user.id }}/"
-                               class="{% if user.is_staff %}btn btn-danger{% else %}btn btn-primary{% endif %}">
+                           <form method="POST" action="{% url 'toggle_staff' user.id %}" class="inline-form">
+                                {% csrf_token %}
+
+                                <button type="submit"
+                                    class="{% if user.is_staff %}btn btn-danger{% else %}btn btn-primary{% endif %}">
 
                                 {% if user.is_staff %}
                                     Remove Staff
@@ -76,7 +79,8 @@
                                     Make Staff
                                 {% endif %}
 
-                            </a>
+                                </button>
+                            </form>
 
                         {% endif %}
 

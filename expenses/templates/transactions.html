@@ -141,9 +141,12 @@
                             Edit
                         </a>
 
-                        <a href="/delete/{{ transaction.id }}/" class="btn btn-danger">
-                            Delete
-                        </a>
+                        <form method="POST" action="{% url 'delete' transaction.id %}" class="inline-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                Delete
+                            </button>
+                        </form>
 
                     </td>
 

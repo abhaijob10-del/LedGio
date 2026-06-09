@@ -1864,6 +1864,13 @@ textarea:focus{
     line-height:1.6;
 }
 
+.inline-form{
+    display:inline-flex;
+    margin:0;
+}
+
+/* RESPONSIVE */
+
 @media(max-width:900px){
     .profile-hero{
         flex-direction:column;

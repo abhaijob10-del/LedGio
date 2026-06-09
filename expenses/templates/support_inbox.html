@@ -60,17 +60,23 @@
 
                         {% if request_item.status == "open" %}
 
-                            <a href="/resolve-support/{{ request_item.id }}/"
-                               class="btn btn-edit">
-                                Resolve
-                            </a>
+                            <form method="POST" action="{% url 'resolve_support' request_item.id %}" class="inline-form">
+                                {% csrf_token %}
+
+                                <button type="submit" class="btn btn-edit">
+                                    Resolve
+                                </button>
+                            </form>
 
                             {% if request_item.issue_type == "account_deactivated" %}
 
-                                <a href="/activate-from-request/{{ request_item.id }}/"
-                                   class="btn btn-primary">
-                                    Activate
-                                </a>
+                                <form method="POST" action="{% url 'activate_from_request' request_item.id %}" class="inline-form">
+                                    {% csrf_token %}
+
+                                    <button type="submit" class="btn btn-primary">
+                                        Activate
+                                    </button>
+                                </form>
 
                             {% endif %}
 
