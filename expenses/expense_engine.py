@@ -225,7 +225,7 @@ CATEGORY_KEYWORDS = {
 
     "Entertainment": {
         "Movies & Gaming & Party": [
-            "movies", "gaming", "entertainment", "amusement","party"
+            "movies", "gaming", "entertainment", "amusement",
         ],
         "Streaming": [
             "streaming"
@@ -280,10 +280,22 @@ CATEGORY_KEYWORDS = {
             "other", "misc", "miscellaneous", "unknown"
         ],
     },
-    "Smoking & Alcohol": [
+    "Smoking & Alcohol":{ 
+        "Items":[
     "cigarette","cigarettes","smoking","cigar","tobacco","beedi","vape","hookah",
     "beer","wine","whisky","whiskey","vodka","rum","brandy","gin","alcohol","liquor","drinks","bar","pub"
+    ],
+    },
+    "Extra Curricular":{
+        "Hobbies": [
+    "football","cricket","gym equipment","books","music","photography"
+    ],
+    },
+    "Events & Celebrations": {
+        "Events":[
+    "wedding","birthday","anniversary","party"
     ]
+    }
 }
 
 
