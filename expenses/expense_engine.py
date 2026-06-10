@@ -12,30 +12,280 @@ from django.db.models.functions import TruncMonth
 
 from .models import Transaction
 
+
 # ---------------------------------------------------------------------------
 # Category keywords — single source of truth for auto-categorization
 # ---------------------------------------------------------------------------
 
 CATEGORY_KEYWORDS = {
-    "Food": [
-        "kfc", "pizza", "burger", "food",
-        "hotel", "restaurant", "tea",
-        "snacks", "mandhi",
-    ],
-    "Transportation": [
-        "uber", "bus", "taxi", "petrol",
-        "diesel", "auto", "train",
-    ],
-    "Shopping": [
-        "amazon", "lulu", "mall",
-        "dress", "shoes", "shoe",
-    ],
-    "Household": [
-        "grocery", "furniture", "gas",
-        "fridge", "curtains",
-        "electricity", "water bill",
-    ],
+    "Mandatory Expenses": {
+        "Rent": ["rent", "office rent", "rental bill"],
+        "Loan": ["loan", "loan payment", "emi"],
+        "Insurance": ["insurance"],
+        "Tax": ["tax"],
+        "Utilities": [
+            "electricity bill", "water bill", "current bill", "gas bill"
+        ],
+    },
+
+    "Maintenance": {
+        "Vehicle Maintenance": [
+            "car maintenance", "car repair", "vehicle insurance",
+            "puc certificate", "engine oil"
+        ],
+        "Mobile Maintenance": [
+            "mobile maintenance", "mobile repair"
+        ],
+        "Electronics Repair": [
+            "electronics repair"
+        ],
+        "General Maintenance": [
+            "maintenance"
+        ],
+    },
+
+    "Unexpected Expenses": {
+        "Emergency": [
+            "emergency", "emergency fund", "medical emergencies"
+        ],
+        "Lost/Damage": [
+            "lost item", "hostel damages"
+        ],
+        "Fines": [
+            "traffic fines", "fine"
+        ],
+        "Vehicle Emergency": [
+            "emergency cab ride", "vehicle accident repairs"
+        ],
+    },
+
+    "Education": {
+        "Fees": [
+            "tuition fees", "course fees", "exam re-registration fees",
+            "backlog fees", "supplementary exam fees",
+            "certification course fees"
+        ],
+        "Study Materials": [
+            "books", "stationery"
+        ],
+        "Project Expenses": [
+            "project printing", "project binding", "printing and binding"
+        ],
+        "Student Essentials": [
+            "laptop repair", "lost id card replacement"
+        ],
+    },
+
+    "Food": {
+        "Daily Food": [
+            "breakfast", "lunch", "dinner", "snacks", "tea", "coffee", "juice"
+        ],
+        "Eating Out": [
+            "restaurant", "fast food", "cafe", "food court", "street food",
+            "mcdonalds", "kfc", "burger king", "subway", "dominos",
+            "pizza hut", "starbucks", "wow momo", "burger singh", "faasos"
+        ],
+        "Food Delivery": [
+            "swiggy", "zomato", "delivery charges", "platform fees",
+            "tips to delivery partners"
+        ],
+        "Groceries": [
+            "rice", "vegetables", "fruits", "milk", "eggs", "bread",
+            "cooking oil", "spices"
+        ],
+        "Beverages": [
+            "soft drinks", "packaged juices", "coconut water",
+            "milkshakes", "bottled water"
+        ],
+        "Snacks": [
+            "chips", "nuts", "chocolates", "biscuits",
+            "crackers", "popcorn", "snack bars"
+        ],
+        "Health & Fitness Food": [
+            "protein powder", "protein bars", "energy drinks",
+            "electrolytes", "supplements"
+        ],
+        "Special Occasions": [
+            "birthday treats", "party food", "festival food purchases",
+            "family dinners", "office treats", "college treats"
+        ],
+    },
+
+    "Transportation": {
+        "Fuel": [
+            "petrol", "diesel", "fuel", "ev charging"
+        ],
+        "Public Transport": [
+            "bus", "city bus", "ksrtc bus", "bmtc bus", "best bus",
+            "metro", "train", "local train", "suburban train"
+        ],
+        "Ride Hailing": [
+            "uber", "ola", "rapido", "taxi", "cab", "auto"
+        ],
+        "Parking & Tolls": [
+            "parking fees", "parking", "toll charges", "toll"
+        ],
+        "Travel Tickets": [
+            "train tickets", "bus tickets", "flight tickets", "flights"
+        ],
+    },
+
+    "Travel": {
+        "Trip": [
+            "trip", "hotel", "accommodation"
+        ],
+        "Rebooking": [
+            "missed train rebooking", "missed flight rebooking",
+            "train rebooking", "flight rebooking"
+        ],
+    },
+
+    "Shopping": {
+        "Mall & Hypermarkets" : ["lulu hypermarket","dmart","reliance smart","reliance fresh","more retail","spencer's",
+        "star bazaar","big bazaar","lulu mall kochi","phoenix marketcity bengaluru","phoenix marketcity mumbai",
+        "forum mall","orion mall","lulu"],
+        "Online Shopping": [
+            "amazon", "flipkart","meesho","snapdeal","myntra","ajio","nykaa fashion","h&m","zara","purplle"
+        ],
+        "Clothing": [
+            "dress", "shirt", "tshirt", "jeans", "pants",
+            "jacket", "hoodie"
+        ],
+        "Footwear": [
+            "shoe", "shoes", "sandals"
+        ],
+        "Accessories": [
+            "watch"
+        ],
+        "Assets & Major Purchases": [
+            "car","bike","motorcycle","scooter","vehicle purchase","laptop",
+            "computer","pc","mobile phone","iphone","smartphone","tablet",
+            "television","tv","refrigerator","fridge","washing machine",
+            "air conditioner","ac","furniture","sofa","bed","wardrobe"
+        ]
+    },
+
+    "Household": {
+        "Cleaning Supplies": [
+            "detergent", "soap", "cleaner"
+        ],
+        "Toiletries": [
+            "toothpaste", "toilet paper"
+        ],
+        "Home Items": [
+            "utensils", "bucket", "bedsheet", "pillow", "furniture"
+        ],
+        "Household Delivery" :["blinkit","zepto","instamart","bigbasket"],
+
+    },
+
+    "Healthcare": {
+        "Medical": [
+            "hospital", "clinic", "doctor", "medicine", "pharmacy"
+        ],
+        "Tests": [
+            "lab test", "blood test", "scan", "xray"
+        ],
+        "Special Care": [
+            "dental", "physiotherapy", "health checkup"
+        ],
+    },
+
+    "Personal Care": {
+        "Grooming": [
+            "salon", "haircut", "shaving"
+        ],
+        "Skincare & Cosmetics": [
+            "cosmetics", "skincare", "toiletries"
+        ],
+    },
+
+    "Communication": {
+        "Mobile": [
+            "mobile recharge", "phone bill", "mobile bill",
+            "postpaid", "postpaid bill", "data pack",
+            "airtel", "jio", "vi", "bsnl"
+        ],
+        "Internet": [
+            "internet", "wifi", "broadband"
+        ],
+    },
+
+    "Subscriptions": {
+        "Entertainment Subscription": [
+            "netflix", "spotify", "prime"
+        ],
+        "General Subscription": [
+            "subscription"
+        ],
+        "Tech Subscription": [
+            "hosting"
+        ],
+    },
+
+    "Entertainment": {
+        "Movies & Gaming & Party": [
+            "movies", "gaming", "entertainment", "amusement","party"
+        ],
+        "Streaming": [
+            "streaming"
+        ],
+    },
+
+    "Investment": {
+        "Investments": [
+            "stock", "investment", "crypto", "mutual fund"
+        ],
+    },
+
+    "Business Related": {
+        "Work": [
+            "work", "office", "travel-work"
+        ],
+        "Software": [
+            "software"
+        ],
+    },
+
+    "Family Support": {
+        "Family": [
+            "parents", "family support", "allowance",
+            "home transfer", "family expense"
+        ],
+    },
+
+    "Pets": {
+        "Pet Care": [
+            "dog food", "cat food", "pet care",
+            "veterinary", "pet grooming"
+        ],
+    },
+
+    "Donations": {
+        "Donation": [
+            "donation", "charity", "offering",
+            "church", "temple", "mosque", "ngo"
+        ],
+    },
+
+    "Bank Charges": {
+        "Charges": [
+            "bank charge", "atm fee", "processing fee",
+            "transaction fee", "annual fee", "interest charge"
+        ],
+    },
+
+    "Miscellaneous": {
+        "Others": [
+            "other", "misc", "miscellaneous", "unknown"
+        ],
+    },
+    "Smoking & Alcohol": [
+    "cigarette","cigarettes","smoking","cigar","tobacco","beedi","vape","hookah",
+    "beer","wine","whisky","whiskey","vodka","rum","brandy","gin","alcohol","liquor","drinks","bar","pub"
+    ]
 }
+
 
 INCOME_KEYWORDS = [
     "salary", "bonus", "income",
@@ -49,18 +299,26 @@ INCOME_KEYWORDS = [
 
 def categorize(description):
     """
-    Auto-detect a spending category from the transaction description.
+    Auto-detect main category and subcategory from the transaction description.
 
-    Matches keywords defined in CATEGORY_KEYWORDS against the
-    lowercased description. Returns 'Other' if no match is found.
+    Returns:
+        (main_category, subcategory)
+
+    Example:
+        "kfc dinner" -> ("Food", "Eating Out")
     """
+
     desc_lower = description.lower()
 
-    for category, keywords in CATEGORY_KEYWORDS.items():
-        if any(word in desc_lower for word in keywords):
-            return category
+    for main_category, subcategories in CATEGORY_KEYWORDS.items():
 
-    return "Other"
+        for subcategory, keywords in subcategories.items():
+
+            if any(keyword in desc_lower for keyword in keywords):
+
+                return main_category, subcategory
+
+    return "Miscellaneous", "Others"
 
 
 # ---------------------------------------------------------------------------
@@ -72,8 +330,9 @@ def add_transaction(user, amount, description, transaction_date, trans_type=None
     Create a new Transaction for the given user.
 
     If *trans_type* is not provided, it is auto-detected from the description
-    using INCOME_KEYWORDS. The category is likewise auto-detected.
+    using INCOME_KEYWORDS.
     """
+
     desc_lower = description.lower()
 
     if trans_type is None:
@@ -82,13 +341,18 @@ def add_transaction(user, amount, description, transaction_date, trans_type=None
         else:
             trans_type = "expense"
 
-    category = "Income" if trans_type == "income" else categorize(description)
+    if trans_type == "income":
+        category = "Income"
+        subcategory = "Income"
+    else:
+        category, subcategory = categorize(description)
 
     Transaction.objects.create(
         user=user,
         amount=Decimal(str(amount)),
         description=description,
         category=category,
+        subcategory=subcategory,
         trans_type=trans_type,
         transaction_date=transaction_date,
     )
@@ -101,12 +365,8 @@ def add_transaction(user, amount, description, transaction_date, trans_type=None
 def get_transactions(user, search=None, month=None, trans_type=None):
     """
     Return a list of transaction dicts for the given user.
-
-    Supports optional filtering by:
-    - *search*: case-insensitive substring match on description
-    - *month*: string in 'YYYY-MM' format
-    - *trans_type*: 'income' or 'expense'
     """
+
     qs = Transaction.objects.filter(user=user)
 
     if search:
@@ -130,6 +390,7 @@ def get_transactions(user, search=None, month=None, trans_type=None):
             "amount": t.amount,
             "description": t.description,
             "category": t.category,
+            "subcategory": t.subcategory,
             "trans_type": t.trans_type,
             "date": t.transaction_date,
         }
@@ -143,13 +404,14 @@ def get_transactions(user, search=None, month=None, trans_type=None):
 
 def delete_transaction(transaction_id, user):
     """
-    Delete a transaction by ID, scoped to the given user (IDOR protection).
-
-    Returns True if a row was deleted, False otherwise.
+    Delete a transaction by ID, scoped to the given user.
     """
+
     deleted_count, _ = Transaction.objects.filter(
-        id=transaction_id, user=user
+        id=transaction_id,
+        user=user
     ).delete()
+
     return deleted_count > 0
 
 
@@ -160,18 +422,25 @@ def delete_transaction(transaction_id, user):
 def update_transaction(transaction_id, user, amount, description,
                        transaction_date, trans_type):
     """
-    Update a transaction by ID, scoped to the given user (IDOR protection).
-
-    Raises Transaction.DoesNotExist if not found.
+    Update a transaction by ID, scoped to the given user.
     """
-    transaction = Transaction.objects.get(id=transaction_id, user=user)
 
-    category = "Income" if trans_type == "income" else categorize(description)
+    transaction = Transaction.objects.get(
+        id=transaction_id,
+        user=user
+    )
+
+    if trans_type == "income":
+        category = "Income"
+        subcategory = "Income"
+    else:
+        category, subcategory = categorize(description)
 
     transaction.amount = Decimal(str(amount))
     transaction.description = description
     transaction.trans_type = trans_type
     transaction.category = category
+    transaction.subcategory = subcategory
     transaction.transaction_date = transaction_date
     transaction.save()
 
@@ -183,16 +452,13 @@ def update_transaction(transaction_id, user, amount, description,
 def get_insights(user):
     """
     Return spending insights for the user.
-
-    Uses DB-level aggregation instead of Python loops for efficiency.
-    Returns a dict with:
-    - total_spending: sum of all expense amounts (positive)
-    - category_totals: dict mapping category → total (positive)
-    - highest_category: the category with the largest spend, or None
     """
-    expense_qs = Transaction.objects.filter(user=user, trans_type="expense")
 
-    # Aggregate totals per category at the DB level
+    expense_qs = Transaction.objects.filter(
+        user=user,
+        trans_type="expense"
+    )
+
     category_rows = (
         expense_qs
         .values("category")
@@ -204,12 +470,12 @@ def get_insights(user):
     total_spending = Decimal("0")
 
     for row in category_rows:
-        # amounts are stored negative for expenses; take abs
         abs_total = abs(row["total"])
         category_totals[row["category"]] = abs_total
         total_spending += abs_total
 
     highest = None
+
     if category_totals:
         highest = max(category_totals, key=category_totals.get)
 
@@ -221,15 +487,63 @@ def get_insights(user):
 
 
 # ---------------------------------------------------------------------------
+# Subcategory Insights
+# ---------------------------------------------------------------------------
+
+def get_subcategory_insights(user):
+    """
+    Return spending totals grouped by subcategory.
+
+    Example:
+        Eating Out -> 1200
+        Fuel -> 800
+    """
+
+    expense_qs = Transaction.objects.filter(
+        user=user,
+        trans_type="expense"
+    )
+
+    subcategory_rows = (
+        expense_qs
+        .values("subcategory")
+        .annotate(total=Sum("amount"))
+        .order_by("-total")
+    )
+
+    subcategory_totals = {}
+    total_spending = Decimal("0")
+
+    for row in subcategory_rows:
+        subcategory = row["subcategory"] or "Others"
+        abs_total = abs(row["total"])
+        subcategory_totals[subcategory] = abs_total
+        total_spending += abs_total
+
+    highest_subcategory = None
+
+    if subcategory_totals:
+        highest_subcategory = max(
+            subcategory_totals,
+            key=subcategory_totals.get
+        )
+
+    return {
+        "total_spending": total_spending,
+        "subcategory_totals": subcategory_totals,
+        "highest_subcategory": highest_subcategory,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Balance
 # ---------------------------------------------------------------------------
 
 def get_balance(user):
     """
     Calculate income, expense, and net balance for the user.
-
-    Uses a single DB query with conditional aggregation.
     """
+
     result = Transaction.objects.filter(user=user).aggregate(
         income=Sum(
             Case(
@@ -264,10 +578,9 @@ def get_balance(user):
 
 def get_monthly_analytics(user):
     """
-    Return a month-by-month breakdown of income, expense, and balance.
-
-    Returns an OrderedDict-style dict keyed by 'Month YYYY' strings.
+    Return month-by-month income, expense, and balance.
     """
+
     monthly_data = (
         Transaction.objects.filter(user=user)
         .annotate(month=TruncMonth("transaction_date"))
@@ -279,6 +592,7 @@ def get_monthly_analytics(user):
     analytics = {}
 
     for item in monthly_data:
+
         month_label = item["month"].strftime("%B %Y")
 
         if month_label not in analytics:

@@ -12,13 +12,29 @@ class Transaction(models.Model):
     ]
 
     CATEGORY_CHOICES = [
-        ("Income", "Income"),
-        ("Food", "Food"),
-        ("Transportation", "Transportation"),
-        ("Shopping", "Shopping"),
-        ("Household", "Household"),
-        ("Other", "Other"),
-    ]
+    ("Income", "Income"),
+    ("Mandatory Expenses", "Mandatory Expenses"),
+    ("Maintenance", "Maintenance"),
+    ("Unexpected Expenses", "Unexpected Expenses"),
+    ("Education", "Education"),
+    ("Food", "Food"),
+    ("Transportation", "Transportation"),
+    ("Travel", "Travel"),
+    ("Shopping", "Shopping"),
+    ("Household", "Household"),
+    ("Healthcare", "Healthcare"),
+    ("Personal Care", "Personal Care"),
+    ("Communication", "Communication"),
+    ("Subscriptions", "Subscriptions"),
+    ("Entertainment", "Entertainment"),
+    ("Investment", "Investment"),
+    ("Business Related", "Business Related"),
+    ("Family Support", "Family Support"),
+    ("Pets", "Pets"),
+    ("Donations", "Donations"),
+    ("Bank Charges", "Bank Charges"),
+    ("Miscellaneous", "Miscellaneous"),
+]
 
     user = models.ForeignKey(
         User,
@@ -37,6 +53,12 @@ class Transaction(models.Model):
     category = models.CharField(
         max_length=100,
         choices=CATEGORY_CHOICES,
+    )
+
+    subcategory = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
     )
 
     trans_type = models.CharField(

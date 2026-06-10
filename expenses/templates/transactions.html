@@ -116,7 +116,12 @@
 
                     <td>
                         <strong>{{ transaction.description }}</strong>
-                        <p class="transaction-category">{{ transaction.category }}</p>
+                        <p class="transaction-category">
+                            {{ transaction.category }}
+                            {% if transaction.subcategory %}
+                                → {{ transaction.subcategory }}
+                            {% endif %}
+                        </p>
                     </td>
 
                     <td>
