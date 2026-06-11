@@ -47,11 +47,7 @@
             <div class="card-marker savings-marker"></div>
             <h3>Savings Rate</h3>
             <h2>
-                {% if balance.income > 0 %}
-                    {% widthratio balance.balance balance.income 100 %}%
-                {% else %}
-                    0%
-                {% endif %}
+                {{ balance.savings_rate }}%
             </h2>
         </div>
 

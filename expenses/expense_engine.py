@@ -462,9 +462,6 @@ def update_transaction(transaction_id, user, amount, description,
 # ---------------------------------------------------------------------------
 
 def get_insights(user):
-    """
-    Return spending insights for the user.
-    """
 
     expense_qs = Transaction.objects.filter(
         user=user,
@@ -475,7 +472,6 @@ def get_insights(user):
         expense_qs
         .values("category")
         .annotate(total=Sum("amount"))
-        .order_by("-total")
     )
 
     category_totals = {}
@@ -486,10 +482,18 @@ def get_insights(user):
         category_totals[row["category"]] = abs_total
         total_spending += abs_total
 
+    category_totals = dict(
+        sorted(
+            category_totals.items(),
+            key=lambda item: item[1],
+            reverse=True
+        )
+    )
+
     highest = None
 
     if category_totals:
-        highest = max(category_totals, key=category_totals.get)
+        highest = next(iter(category_totals))
 
     return {
         "total_spending": total_spending,
@@ -552,9 +556,6 @@ def get_subcategory_insights(user):
 # ---------------------------------------------------------------------------
 
 def get_balance(user):
-    """
-    Calculate income, expense, and net balance for the user.
-    """
 
     result = Transaction.objects.filter(user=user).aggregate(
         income=Sum(
@@ -577,12 +578,50 @@ def get_balance(user):
     expense = abs(result["expense"] or Decimal("0"))
     balance = income - expense
 
+    if income > 0:
+        expense_usage = (expense / income) * 100
+        savings_rate = (balance / income) * 100
+    else:
+        expense_usage = Decimal("0")
+        savings_rate = Decimal("0")
+
+    if expense_usage > 100:
+        progress_width = 100
+    else:
+        progress_width = round(expense_usage, 2)
+
+    if balance < 0:
+        health_status = "Risk"
+        health_title = "Overspending alert"
+        health_message = "Your expenses are higher than your income. Review your top spending categories immediately."
+    elif balance == 0:
+        health_status = "Neutral"
+        health_title = "Balanced but tight"
+        health_message = "Your income and expenses are equal. Try reducing small recurring expenses to build savings."
+    elif savings_rate >= 30:
+        health_status = "Excellent"
+        health_title = "Excellent position"
+        health_message = "You are saving a strong portion of your income. Keep maintaining this habit."
+    elif savings_rate >= 10:
+        health_status = "Good"
+        health_title = "Good position"
+        health_message = "You are maintaining a positive balance. Try increasing your savings gradually."
+    else:
+        health_status = "Needs Attention"
+        health_title = "Low savings warning"
+        health_message = "Your balance is positive, but savings are low. Review unnecessary expenses."
+
     return {
         "income": income,
         "expense": expense,
         "balance": balance,
+        "expense_usage": round(expense_usage, 2),
+        "savings_rate": round(savings_rate, 2),
+        "progress_width": progress_width,
+        "health_status": health_status,
+        "health_title": health_title,
+        "health_message": health_message,
     }
-
 
 # ---------------------------------------------------------------------------
 # Monthly Analytics

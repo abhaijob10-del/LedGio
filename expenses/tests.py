@@ -112,30 +112,30 @@ class CategorizeTest(TestCase):
     """Tests for the categorize() auto-detection function."""
 
     def test_food_keywords(self):
-        self.assertEqual(categorize("KFC dinner"), "Food")
-        self.assertEqual(categorize("pizza order"), "Food")
-        self.assertEqual(categorize("snacks from store"), "Food")
+        self.assertEqual(categorize("KFC dinner"), ("Food", "Daily Food"))
+        self.assertEqual(categorize("pizza order"), ("Food", "Eating Out"))
+        self.assertEqual(categorize("snacks from store"), ("Food", "Daily Food"))
 
     def test_transportation_keywords(self):
-        self.assertEqual(categorize("uber ride"), "Transportation")
-        self.assertEqual(categorize("bus ticket"), "Transportation")
-        self.assertEqual(categorize("petrol fill"), "Transportation")
+        self.assertEqual(categorize("uber ride"), ("Transportation", "Ride Hailing"))
+        self.assertEqual(categorize("bus ticket"), ("Transportation", "Public Transport"))
+        self.assertEqual(categorize("petrol fill"), ("Transportation", "Fuel"))
 
     def test_shopping_keywords(self):
-        self.assertEqual(categorize("amazon order"), "Shopping")
-        self.assertEqual(categorize("new shoes"), "Shopping")
+        self.assertEqual(categorize("amazon order"), ("Shopping", "Online Shopping"))
+        self.assertEqual(categorize("new shoes"), ("Shopping", "Footwear"))
 
     def test_household_keywords(self):
-        self.assertEqual(categorize("grocery shopping"), "Household")
-        self.assertEqual(categorize("electricity bill"), "Household")
+        self.assertEqual(categorize("furniture purchase"), ("Household", "Home Items"))
+        self.assertEqual(categorize("detergent"), ("Household", "Cleaning Supplies"))
 
-    def test_unknown_defaults_to_other(self):
-        self.assertEqual(categorize("random stuff"), "Other")
-        self.assertEqual(categorize(""), "Other")
+    def test_unknown_defaults_to_miscellaneous(self):
+        self.assertEqual(categorize("random stuff"), ("Miscellaneous", "Others"))
+        self.assertEqual(categorize(""), ("Miscellaneous", "Others"))
 
     def test_case_insensitive(self):
-        self.assertEqual(categorize("PIZZA party"), "Food")
-        self.assertEqual(categorize("UBER ride"), "Transportation")
+        self.assertEqual(categorize("KFC DINNER"), ("Food", "Daily Food"))
+        self.assertEqual(categorize("UBER ride"), ("Transportation", "Ride Hailing"))
 
 
 class BalanceTest(TestCase):

@@ -132,7 +132,7 @@ const ctx = document.getElementById('pieChart');
 
 new Chart(ctx, {
 
-    type: 'doughnut',
+    type: 'bar',
 
     data: {
 
@@ -148,33 +148,44 @@ new Chart(ctx, {
 
     options: {
 
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '70%',
+    responsive: true,
+    maintainAspectRatio: false,
 
-        plugins: {
+    indexAxis: 'y',
 
-            legend: {
-                position: 'bottom',
+    plugins: {
+        legend: {
+            display: false
+        },
 
-                labels: {
-                    color: '#ffffff',
-                    padding: 20,
-                    font: {
-                        size: 14
-                    }
-                }
-            },
-
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return context.label + ": ₹" + context.raw;
-                    }
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    return "₹" + context.raw;
                 }
             }
         }
+    },
+
+    scales: {
+        x: {
+            ticks: {
+                color: '#94a3b8'
+            },
+            grid: {
+                color: 'rgba(255,255,255,0.08)'
+            }
+        },
+        y: {
+            ticks: {
+                color: '#ffffff'
+            },
+            grid: {
+                display: false
+            }
+        }
     }
+}
 });
 
 </script>

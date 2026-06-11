@@ -17,13 +17,7 @@
         </div>
 
         <div class="balance-pill">
-            {% if balance.balance > 0 %}
-                Healthy
-            {% elif balance.balance == 0 %}
-                Neutral
-            {% else %}
-                Risk
-            {% endif %}
+            {{ balance.health_status }}
         </div>
 
     </div>
@@ -52,9 +46,7 @@
                 </div>
 
                 <div class="split-track">
-                    <div class="split-fill expense-fill"
-                         style="width:{% if balance.income > 0 %}{% widthratio balance.expense balance.income 100 %}{% else %}0{% endif %}%;">
-                    </div>
+                    <div class="split-fill expense-fill" style="width:{{ balance.progress_width }}%;"></div>
                 </div>
             </div>
 
@@ -65,15 +57,9 @@
             <h2>Savings Rate</h2>
 
             <div class="savings-circle">
-
                 <span>
-                    {% if balance.income > 0 %}
-                        {% widthratio balance.balance balance.income 100 %}%
-                    {% else %}
-                        0%
-                    {% endif %}
+                    {{ balance.savings_rate }}%
                 </span>
-
             </div>
 
             <p class="subtitle center-text">
@@ -100,19 +86,13 @@
         <div class="balance-progress">
 
             <div class="progress-track">
-                <div class="progress-fill"
-                     style="width:{% if balance.income > 0 %}{% widthratio balance.expense balance.income 100 %}{% else %}0{% endif %}%;">
-                </div>
+                <div class="progress-fill" style="width:{{ balance.progress_width }}%;"></div>
             </div>
 
             <div class="progress-labels">
                 <span>Expense Usage</span>
                 <span>
-                    {% if balance.income > 0 %}
-                        {% widthratio balance.expense balance.income 100 %}%
-                    {% else %}
-                        0%
-                    {% endif %}
+                    {{ balance.expense_usage }}%
                 </span>
             </div>
 
@@ -120,16 +100,11 @@
 
         <div class="balance-message">
 
-            {% if balance.balance > 0 %}
-                <h3>Good position ✅</h3>
-                <p>You are maintaining a positive balance. Keep tracking your spending and try to increase savings gradually.</p>
-            {% elif balance.balance == 0 %}
-                <h3>Balanced but tight ⚠️</h3>
-                <p>Your income and expenses are equal. Try reducing small recurring expenses to build savings.</p>
-            {% else %}
-                <h3>Overspending alert 🚨</h3>
-                <p>Your expenses are higher than your income. Review your top spending categories immediately.</p>
-            {% endif %}
+            <h3>{{ balance.health_title }}</h3>
+
+            <p>
+                {{ balance.health_message }}
+            </p>
 
         </div>
 
