@@ -51,8 +51,8 @@
 
             <div class="chart-header">
                 <div>
-                    <h2>Spending Distribution</h2>
-                    <p>Category-wise expense breakdown.</p>
+                    <h2>Major Expenses</h2>
+                    <p>Categories that take the biggest share of spending.</p>
                 </div>
 
                 <div class="chart-balance">
@@ -61,44 +61,63 @@
             </div>
 
             <div class="chart-wrapper">
-                <canvas id="pieChart"></canvas>
+                <canvas id="majorExpenseChart"></canvas>
             </div>
 
         </div>
 
-        <div class="category-panel">
+        <div class="single-chart-container analytics-chart-box">
 
-            <h2>Category Breakdown</h2>
-
-            {% for category, amount in insights.category_totals.items %}
-
-                <div class="category-row">
-
-                    <div>
-                        <strong>{{ category }}</strong>
-                        <p>Expense category</p>
-                    </div>
-
-                    <span>₹{{ amount }}</span>
-
+            <div class="chart-header">
+                <div>
+                    <h2>Other Expenses</h2>
+                    <p>Smaller categories shown separately for better visibility.</p>
                 </div>
+            </div>
 
-            {% empty %}
+            <div class="chart-wrapper">
+                <canvas id="minorExpenseChart"></canvas>
+            </div>
 
-                <p class="subtitle">
-                    No expense data available yet.
-                </p>
-
-            {% endfor %}
+            <p id="minorEmptyText" class="subtitle center-text" style="display:none;">
+                No smaller expense categories to display.
+            </p>
 
         </div>
+
+    </div>
+
+    <div class="category-panel" style="margin-top:30px;">
+
+        <h2>Category Breakdown</h2>
+
+        {% for category, amount in insights.category_totals.items %}
+
+            <div class="category-row">
+
+                <div>
+                    <strong>{{ category }}</strong>
+                    <p>Expense category</p>
+                </div>
+
+                <span>₹{{ amount }}</span>
+
+            </div>
+
+        {% empty %}
+
+            <p class="subtitle">
+                No expense data available yet.
+            </p>
+
+        {% endfor %}
 
     </div>
 
     <div class="analytics-message">
 
         {% if insights.highest_category %}
-            <h3>Smart Insight 💡</h3>
+            <h3>Smart Insight</h3>
             <p>
                 Your highest spending area is <strong>{{ insights.highest_category }}</strong>.
                 Try reviewing this category first if you want to reduce expenses.
@@ -116,77 +135,149 @@
 
 <script>
 
-const categoryLabels = [
-    {% for category in insights.category_totals.keys %}
-        "{{ category }}",
+const rawCategories = [
+    {% for category, amount in insights.category_totals.items %}
+        {
+            label: "{{ category|escapejs }}",
+            amount: Number("{{ amount }}")
+        },
     {% endfor %}
 ];
 
-const categoryAmounts = [
-    {% for amount in insights.category_totals.values %}
-        {{ amount }},
-    {% endfor %}
-];
+const totalSpending = rawCategories.reduce((sum, item) => sum + item.amount, 0);
 
-const ctx = document.getElementById('pieChart');
+const sortedCategories = rawCategories.sort((a, b) => b.amount - a.amount);
 
-new Chart(ctx, {
+const majorThreshold = totalSpending * 0.10;
 
-    type: 'bar',
+let majorCategories = sortedCategories.filter(item => item.amount >= majorThreshold);
+let minorCategories = sortedCategories.filter(item => item.amount < majorThreshold);
+
+if(majorCategories.length === 0 && sortedCategories.length > 0){
+    majorCategories = sortedCategories.slice(0, 3);
+    minorCategories = sortedCategories.slice(3);
+}
+
+const majorCtx = document.getElementById("majorExpenseChart");
+
+new Chart(majorCtx, {
+
+    type: "bar",
 
     data: {
-
-        labels: categoryLabels,
+        labels: majorCategories.map(item => item.label),
 
         datasets: [{
-            label: 'Expenses',
-            data: categoryAmounts,
+            label: "Major Expenses",
+            data: majorCategories.map(item => item.amount),
             borderWidth: 0,
-            hoverOffset: 12
+            borderRadius: 10,
+            barThickness: 35
         }]
     },
 
     options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
 
-    responsive: true,
-    maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
 
-    indexAxis: 'y',
-
-    plugins: {
-        legend: {
-            display: false
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return "₹" + context.raw.toLocaleString("en-IN");
+                    }
+                }
+            }
         },
 
-        tooltip: {
-            callbacks: {
-                label: function(context) {
-                    return "₹" + context.raw;
+        scales: {
+            x: {
+                ticks: {
+                    color: "#94a3b8",
+                    callback: function(value) {
+                        return "₹" + Number(value).toLocaleString("en-IN");
+                    }
+                },
+                grid: {
+                    color: "rgba(255,255,255,0.08)"
+                }
+            },
+
+            y: {
+                ticks: {
+                    color: "#ffffff",
+                    font: {
+                        size: 13
+                    }
+                },
+                grid: {
+                    display: false
                 }
             }
         }
-    },
+    }
+});
 
-    scales: {
-        x: {
-            ticks: {
-                color: '#94a3b8'
-            },
-            grid: {
-                color: 'rgba(255,255,255,0.08)'
-            }
+const minorCtx = document.getElementById("minorExpenseChart");
+const minorEmptyText = document.getElementById("minorEmptyText");
+
+if(minorCategories.length > 0){
+
+    new Chart(minorCtx, {
+
+        type: "doughnut",
+
+        data: {
+            labels: minorCategories.map(item => item.label),
+
+            datasets: [{
+                label: "Other Expenses",
+                data: minorCategories.map(item => item.amount),
+                borderWidth: 0,
+                hoverOffset: 12
+            }]
         },
-        y: {
-            ticks: {
-                color: '#ffffff'
-            },
-            grid: {
-                display: false
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "68%",
+
+            plugins: {
+                legend: {
+                    position: "bottom",
+
+                    labels: {
+                        color: "#ffffff",
+                        padding: 18,
+                        font: {
+                            size: 13
+                        }
+                    }
+                },
+
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ": ₹" + context.raw.toLocaleString("en-IN");
+                        }
+                    }
+                }
             }
         }
-    }
+    });
+
+}else{
+
+    minorCtx.style.display = "none";
+    minorEmptyText.style.display = "block";
+
 }
-});
 
 </script>
 

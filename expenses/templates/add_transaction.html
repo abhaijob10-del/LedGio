@@ -1,32 +1,845 @@
-
 {% extends 'base.html' %}
 
 {% block content %}
 {% load static %}
-<h1 class="page-title">Add Transaction</h1>
 
-<form method="POST">
+<style>
+/* ==============================
+   LEDGIO ADD TRANSACTION PAGE
+   Desktop: clean form only
+   Mobile: keypad opens on amount click
+================================= */
 
-    {% csrf_token %}
+.addx-page{
+    width:95%;
+    max-width:1100px;
+    margin:auto;
+    padding:30px 0 60px;
+}
 
-    <input type="number"
-           name="amount"
-           placeholder="Amount"
-           required>
+.addx-shell{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:28px;
+    align-items:start;
+}
 
-    <input type="text"
-           name="description"
-           placeholder="Description"
-           required>
+.addx-hero{
+    padding:36px 40px;
+    border-radius:34px;
+    background:
+        linear-gradient(135deg,rgba(56,189,248,0.18),rgba(15,23,42,0.82)),
+        radial-gradient(circle at top right,rgba(56,189,248,0.22),transparent 35%);
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow:0 18px 45px rgba(0,0,0,0.38);
+    backdrop-filter:blur(22px);
+    position:relative;
+    overflow:hidden;
+}
 
-    <input type="date"
-           name="date"
-           required>
+.addx-back{
+    display:inline-flex;
+    margin-bottom:22px;
+    color:#38bdf8;
+    text-decoration:none;
+    font-weight:900;
+    letter-spacing:0.2px;
+}
 
-    <button class="btn" type="submit">
-        Add Transaction
-    </button>
+.addx-hero h1{
+    font-size:54px;
+    font-weight:900;
+    letter-spacing:-2px;
+    margin-bottom:10px;
+}
 
-</form>
+.addx-hero p{
+    color:#94a3b8;
+    font-size:17px;
+    font-weight:600;
+}
+
+.addx-card{
+    border-radius:34px;
+    background:
+        linear-gradient(135deg,rgba(255,255,255,0.10),rgba(255,255,255,0.04));
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow:0 18px 45px rgba(0,0,0,0.38);
+    backdrop-filter:blur(24px);
+    overflow:hidden;
+}
+
+.addx-main-card{
+    padding:30px;
+}
+
+.addx-tabs{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    padding:8px;
+    border-radius:28px;
+    background:rgba(2,6,23,0.44);
+    border:1px solid rgba(255,255,255,0.08);
+    margin-bottom:28px;
+}
+
+.addx-tab{
+    border:none !important;
+    outline:none !important;
+    padding:18px 16px;
+    border-radius:22px;
+    background:transparent;
+    color:#94a3b8;
+    font-size:18px;
+    font-weight:900;
+    cursor:pointer;
+    transition:0.25s ease;
+}
+
+.addx-tab:hover{
+    color:white;
+    transform:translateY(-2px);
+}
+
+.addx-tab.active.expense{
+    color:white;
+    background:linear-gradient(135deg,rgba(239,68,68,0.34),rgba(239,68,68,0.10));
+    box-shadow:0 14px 30px rgba(239,68,68,0.15);
+}
+
+.addx-tab.active.income{
+    color:white;
+    background:linear-gradient(135deg,rgba(34,197,94,0.34),rgba(34,197,94,0.10));
+    box-shadow:0 14px 30px rgba(34,197,94,0.15);
+}
+
+.addx-row{
+    display:grid;
+    grid-template-columns:145px 1fr;
+    gap:20px;
+    align-items:center;
+    padding:22px 0;
+    border-bottom:1px solid rgba(255,255,255,0.07);
+}
+
+.addx-row label{
+    color:#94a3b8;
+    font-size:16px;
+    font-weight:900;
+}
+
+.addx-date-wrap{
+    display:grid;
+    grid-template-columns:auto auto 1fr;
+    gap:10px;
+}
+
+.addx-date-btn{
+    border:none !important;
+    outline:none !important;
+    padding:13px 18px;
+    border-radius:16px;
+    background:rgba(56,189,248,0.12);
+    color:#38bdf8;
+    font-weight:900;
+    cursor:pointer;
+    transition:0.25s ease;
+}
+
+.addx-date-btn:hover,
+.addx-date-btn.active{
+    background:rgba(56,189,248,0.25);
+    color:white;
+    transform:translateY(-2px);
+}
+
+.addx-date-wrap input,
+.addx-row input{
+    width:100%;
+    padding:17px 18px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.10);
+    background:rgba(15,23,42,0.86);
+    color:white;
+    font-size:16px;
+}
+
+.addx-date-wrap input:focus,
+.addx-row input:focus{
+    outline:none;
+    border-color:#38bdf8;
+    box-shadow:0 0 0 4px rgba(56,189,248,0.12);
+}
+
+.addx-amount-box{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:8px 18px;
+    border-radius:24px;
+    background:rgba(2,6,23,0.40);
+    border:1px solid rgba(255,255,255,0.10);
+}
+
+.addx-amount-box span{
+    color:#38bdf8;
+    font-size:34px;
+    font-weight:900;
+}
+
+.addx-amount-box input{
+    border:none !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    padding:10px 0 !important;
+    font-size:42px !important;
+    font-weight:900;
+}
+
+.addx-suggest{
+    margin-top:26px;
+    padding:24px;
+    border-radius:28px;
+    background:
+        linear-gradient(135deg,rgba(168,85,247,0.16),rgba(56,189,248,0.08));
+    border:1px solid rgba(168,85,247,0.22);
+}
+
+.addx-suggest span{
+    color:#c084fc;
+    font-size:12px;
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.addx-suggest h3{
+    margin:8px 0;
+    font-size:25px;
+}
+
+.addx-suggest p{
+    color:#94a3b8;
+    font-weight:600;
+}
+
+.addx-quick{
+    margin-top:26px;
+}
+
+.addx-quick h3{
+    font-size:22px;
+    margin-bottom:16px;
+}
+
+.addx-chip-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:12px;
+}
+
+.addx-chip-grid button{
+    border:none !important;
+    outline:none !important;
+    padding:15px 14px;
+    border-radius:18px;
+    background:rgba(56,189,248,0.12);
+    color:#38bdf8;
+    font-weight:900;
+    cursor:pointer;
+    transition:0.25s ease;
+}
+
+.addx-chip-grid button:hover{
+    background:rgba(56,189,248,0.24);
+    color:white;
+    transform:translateY(-3px);
+}
+
+.addx-desktop-actions{
+    display:grid;
+    grid-template-columns:0.8fr 1.2fr;
+    gap:14px;
+    margin-top:28px;
+}
+
+.addx-cancel{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:58px;
+    border-radius:18px;
+    background:rgba(255,255,255,0.08);
+    color:#94a3b8;
+    text-decoration:none;
+    font-weight:900;
+    border:none;
+    cursor:pointer;
+    transition:0.25s ease;
+    font-family:inherit;
+}
+
+.addx-cancel:hover{
+    color:white;
+    transform:translateY(-3px);
+}
+
+.addx-save{
+    width:100%;
+    min-height:58px;
+}
+
+/* MOBILE KEYPAD */
+
+.addx-keypad-card{
+    display:none;
+    padding:24px;
+    border-radius:32px;
+    background:
+        linear-gradient(135deg,rgba(255,255,255,0.11),rgba(255,255,255,0.05));
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow:
+        0 30px 80px rgba(0,0,0,0.70),
+        0 0 35px rgba(56,189,248,0.12);
+    backdrop-filter:blur(24px);
+}
+
+.addx-preview{
+    text-align:center;
+    padding:18px;
+    border-radius:26px;
+    background:rgba(2,6,23,0.40);
+    border:1px solid rgba(255,255,255,0.08);
+    margin-bottom:20px;
+}
+
+.addx-preview p{
+    color:#94a3b8;
+    font-weight:900;
+    margin-bottom:8px;
+}
+
+.addx-preview h2{
+    font-size:42px;
+    font-weight:900;
+    color:white;
+}
+
+.addx-keypad{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+}
+
+.addx-keypad button{
+    min-height:64px;
+    border:none !important;
+    outline:none !important;
+    border-radius:20px;
+    background:rgba(15,23,42,0.88);
+    border:1px solid rgba(255,255,255,0.08) !important;
+    color:white;
+    font-size:24px;
+    font-weight:900;
+    cursor:pointer;
+    transition:0.25s ease;
+}
+
+.addx-keypad button:hover{
+    background:rgba(56,189,248,0.20);
+    border-color:rgba(56,189,248,0.40) !important;
+    transform:translateY(-3px);
+}
+
+.addx-clear{
+    width:100%;
+    margin-top:14px;
+    padding:15px;
+    border:none !important;
+    border-radius:18px;
+    background:rgba(239,68,68,0.14);
+    color:#f87171;
+    font-weight:900;
+    cursor:pointer;
+    transition:0.25s ease;
+}
+
+.addx-clear:hover{
+    background:rgba(239,68,68,0.24);
+    color:white;
+    transform:translateY(-3px);
+}
+
+.addx-submit-row{
+    display:grid;
+    grid-template-columns:0.8fr 1.2fr;
+    gap:14px;
+    margin-top:20px;
+}
+
+@media(max-width:760px){
+    .addx-page{
+        width:96%;
+        padding-bottom:30px;
+    }
+
+    .addx-hero{
+        padding:28px;
+    }
+
+    .addx-hero h1{
+        font-size:40px;
+    }
+
+    .addx-main-card{
+        padding:24px;
+    }
+
+    .addx-row{
+        grid-template-columns:1fr;
+        gap:10px;
+    }
+
+    .addx-date-wrap{
+        grid-template-columns:1fr;
+    }
+
+    .addx-desktop-actions{
+        grid-template-columns:1fr;
+    }
+
+    .addx-keypad-card{
+        position:fixed;
+        left:14px;
+        right:14px;
+        bottom:14px;
+        z-index:3000;
+        max-height:72vh;
+        overflow-y:auto;
+        animation:keypadSlideUp 0.24s ease;
+    }
+
+    body.keypad-open .addx-keypad-card{
+        display:block;
+    }
+
+    body.keypad-open{
+        overflow:hidden;
+    }
+
+    .addx-preview h2{
+        font-size:36px;
+    }
+
+    .addx-amount-box input{
+        font-size:34px !important;
+    }
+
+    .addx-submit-row{
+        grid-template-columns:1fr;
+    }
+}
+
+@keyframes keypadSlideUp{
+    from{
+        opacity:0;
+        transform:translateY(30px) scale(0.96);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+</style>
+
+<div class="addx-page">
+
+    <div class="addx-shell">
+
+        <div class="addx-hero">
+
+            <a href="{% url 'transactions' %}" class="addx-back">
+                ← Back to Transactions
+            </a>
+
+            <p class="balance-label">New Money Entry</p>
+
+            <h1>Add Transaction</h1>
+
+            <p>
+                Enter amount, choose type, and let LedGio detect the category automatically.
+            </p>
+
+        </div>
+
+        <form method="POST" class="addx-card addx-main-card" id="mainAddForm">
+
+            {% csrf_token %}
+
+            <input type="hidden" name="type" id="transactionType" value="expense">
+
+            <div class="addx-tabs">
+
+                <button type="button"
+                        id="expenseButton"
+                        class="addx-tab active expense"
+                        onclick="setTransactionType('expense')">
+                    Expense
+                </button>
+
+                <button type="button"
+                        id="incomeButton"
+                        class="addx-tab income"
+                        onclick="setTransactionType('income')">
+                    Income
+                </button>
+
+            </div>
+
+            <div class="addx-row">
+
+                <label>Date</label>
+
+                <div class="addx-date-wrap">
+
+                    <button type="button"
+                            id="todayButton"
+                            class="addx-date-btn active"
+                            onclick="setTodayDate()">
+                        Today
+                    </button>
+
+                    <button type="button"
+                            id="yesterdayButton"
+                            class="addx-date-btn"
+                            onclick="setYesterdayDate()">
+                        Yesterday
+                    </button>
+
+                    <input type="date"
+                           name="date"
+                           id="dateInput"
+                           required>
+
+                </div>
+
+            </div>
+
+            <div class="addx-row">
+
+                <label>Amount</label>
+
+                <div class="addx-amount-box">
+
+                    <span>₹</span>
+
+                    <input type="number"
+                           step="0.01"
+                           min="0.01"
+                           name="amount"
+                           id="amountInput"
+                           placeholder="0"
+                           onfocus="openMobileKeypad()"
+                           required>
+
+                </div>
+
+            </div>
+
+            <div class="addx-row">
+
+                <label>Description</label>
+
+                <input type="text"
+                       name="description"
+                       id="descriptionInput"
+                       placeholder="e.g. KFC dinner, Uber ride, Salary"
+                       oninput="detectCategory()"
+                       required>
+
+            </div>
+
+            <div class="addx-suggest" id="categoryBox">
+
+                <span>Suggested Category</span>
+
+                <h3>Waiting for description</h3>
+
+                <p>LedGio will suggest the category automatically.</p>
+
+            </div>
+
+            <div class="addx-quick">
+
+                <h3>Quick Fill</h3>
+
+                <div class="addx-chip-grid">
+
+                    <button type="button" onclick="quickFill('KFC dinner', 'expense')">Food</button>
+                    <button type="button" onclick="quickFill('Uber ride', 'expense')">Travel</button>
+                    <button type="button" onclick="quickFill('Amazon order', 'expense')">Shopping</button>
+                    <button type="button" onclick="quickFill('Petrol refill', 'expense')">Fuel</button>
+                    <button type="button" onclick="quickFill('Mobile recharge', 'expense')">Recharge</button>
+                    <button type="button" onclick="quickFill('Netflix subscription', 'expense')">Subscription</button>
+                    <button type="button" onclick="quickFill('Salary', 'income')">Salary</button>
+                    <button type="button" onclick="quickFill('Freelance income', 'income')">Freelance</button>
+
+                </div>
+
+            </div>
+
+            <div class="addx-desktop-actions">
+
+                <a href="{% url 'transactions' %}" class="addx-cancel">
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn btn-primary addx-save">
+                    Save Transaction
+                </button>
+
+            </div>
+
+        </form>
+
+        <div class="addx-keypad-card" id="mobileKeypad">
+
+            <div class="addx-preview">
+
+                <p>Amount</p>
+
+                <h2>₹<span id="amountPreview">0</span></h2>
+
+            </div>
+
+            <div class="addx-keypad">
+
+                <button type="button" onclick="pressNumber('1')">1</button>
+                <button type="button" onclick="pressNumber('2')">2</button>
+                <button type="button" onclick="pressNumber('3')">3</button>
+
+                <button type="button" onclick="pressNumber('4')">4</button>
+                <button type="button" onclick="pressNumber('5')">5</button>
+                <button type="button" onclick="pressNumber('6')">6</button>
+
+                <button type="button" onclick="pressNumber('7')">7</button>
+                <button type="button" onclick="pressNumber('8')">8</button>
+                <button type="button" onclick="pressNumber('9')">9</button>
+
+                <button type="button" onclick="pressNumber('.')">.</button>
+                <button type="button" onclick="pressNumber('0')">0</button>
+                <button type="button" onclick="deleteNumber()">⌫</button>
+
+            </div>
+
+            <button type="button" class="addx-clear" onclick="clearAmount()">
+                Clear Amount
+            </button>
+
+            <div class="addx-submit-row">
+
+                <button type="button" class="addx-cancel" onclick="closeMobileKeypad()">
+                    Done
+                </button>
+
+                <button type="submit"
+                        form="mainAddForm"
+                        class="btn btn-primary addx-save">
+                    Save Transaction
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function isMobileScreen(){
+    return window.matchMedia("(max-width: 760px)").matches;
+}
+
+function openMobileKeypad(){
+
+    if(isMobileScreen()){
+        document.body.classList.add("keypad-open");
+    }
+}
+
+function closeMobileKeypad(){
+    document.body.classList.remove("keypad-open");
+}
+
+function configureAmountInput(){
+
+    const amountInput = document.getElementById("amountInput");
+
+    if(isMobileScreen()){
+        amountInput.setAttribute("readonly", "readonly");
+    }else{
+        amountInput.removeAttribute("readonly");
+        closeMobileKeypad();
+    }
+}
+
+function setTransactionType(type){
+
+    const typeInput = document.getElementById("transactionType");
+    const expenseButton = document.getElementById("expenseButton");
+    const incomeButton = document.getElementById("incomeButton");
+
+    typeInput.value = type;
+
+    expenseButton.classList.remove("active", "expense");
+    incomeButton.classList.remove("active", "income");
+
+    if(type === "expense"){
+        expenseButton.classList.add("active", "expense");
+    }else{
+        incomeButton.classList.add("active", "income");
+    }
+
+    detectCategory();
+}
+
+function setTodayDate(){
+
+    const today = new Date();
+    document.getElementById("dateInput").value = today.toISOString().split("T")[0];
+
+    document.getElementById("todayButton").classList.add("active");
+    document.getElementById("yesterdayButton").classList.remove("active");
+}
+
+function setYesterdayDate(){
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    document.getElementById("dateInput").value = yesterday.toISOString().split("T")[0];
+
+    document.getElementById("yesterdayButton").classList.add("active");
+    document.getElementById("todayButton").classList.remove("active");
+}
+
+function updatePreview(){
+
+    const amount = document.getElementById("amountInput").value;
+
+    document.getElementById("amountPreview").innerText = amount || "0";
+}
+
+function pressNumber(value){
+
+    const amountInput = document.getElementById("amountInput");
+
+    if(value === "." && amountInput.value.includes(".")){
+        return;
+    }
+
+    amountInput.value += value;
+
+    updatePreview();
+}
+
+function deleteNumber(){
+
+    const amountInput = document.getElementById("amountInput");
+
+    amountInput.value = amountInput.value.slice(0, -1);
+
+    updatePreview();
+}
+
+function clearAmount(){
+
+    document.getElementById("amountInput").value = "";
+
+    updatePreview();
+}
+
+function quickFill(description, type){
+
+    document.getElementById("descriptionInput").value = description;
+
+    setTransactionType(type);
+
+    detectCategory();
+
+    document.getElementById("amountInput").focus();
+}
+
+function detectCategory(){
+
+    const description = document.getElementById("descriptionInput").value.toLowerCase();
+    const type = document.getElementById("transactionType").value;
+    const box = document.getElementById("categoryBox");
+
+    if(type === "income"){
+
+        box.innerHTML = `
+            <span>Suggested Category</span>
+            <h3>Income → Income</h3>
+            <p>This will be recorded as money received.</p>
+        `;
+
+        return;
+    }
+
+    let category = "Miscellaneous → Others";
+
+    const rules = [
+        { category: "Food → Eating Out", words: ["kfc", "pizza", "restaurant", "burger", "dominos", "cafe"] },
+        { category: "Food → Food Delivery", words: ["swiggy", "zomato"] },
+        { category: "Transportation → Ride Hailing", words: ["uber", "ola", "rapido", "taxi", "cab", "auto"] },
+        { category: "Transportation → Fuel", words: ["petrol", "diesel", "fuel"] },
+        { category: "Shopping → Online Shopping", words: ["amazon", "flipkart", "mall", "lulu"] },
+        { category: "Communication → Mobile", words: ["mobile recharge", "phone bill", "airtel", "jio", "vi", "bsnl"] },
+        { category: "Subscriptions → Entertainment Subscription", words: ["netflix", "spotify", "prime"] },
+        { category: "Mandatory Expenses → Utilities", words: ["electricity", "water bill", "gas bill", "current bill"] },
+        { category: "Healthcare → Medical", words: ["hospital", "clinic", "doctor", "medicine", "pharmacy"] },
+        { category: "Education → Study Materials", words: ["books", "stationery"] }
+    ];
+
+    for(const rule of rules){
+        if(rule.words.some(word => description.includes(word))){
+            category = rule.category;
+            break;
+        }
+    }
+
+    if(description.length === 0){
+
+        box.innerHTML = `
+            <span>Suggested Category</span>
+            <h3>Waiting for description</h3>
+            <p>LedGio will suggest the category automatically.</p>
+        `;
+
+    }else{
+
+        box.innerHTML = `
+            <span>Suggested Category</span>
+            <h3>${category}</h3>
+            <p>This category will be applied automatically after saving.</p>
+        `;
+    }
+}
+
+window.addEventListener("resize", configureAmountInput);
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    setTodayDate();
+
+    configureAmountInput();
+
+    document.getElementById("amountInput").addEventListener("input", updatePreview);
+});
+</script>
 
 {% endblock %}
