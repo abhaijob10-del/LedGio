@@ -1,0 +1,25 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Cancelled | LedGio</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-brand">
+        <h1>LedGio</h1>
+        <p>Authentication Cancelled</p>
+    </div>
+    <div class="auth-card" style="text-align: center;">
+        <div style="font-size: 50px; margin-bottom: 20px;">❌</div>
+        <h2>Login Cancelled</h2>
+        <p class="subtitle" style="margin-bottom: 30px;">
+            You have cancelled the social login process.
+        </p>
+        <a href="/login/" class="btn btn-primary" style="display: inline-block;">Return to Login</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Verification Required | LedGio</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-brand">
+        <h1>LedGio</h1>
+        <p>Action Required</p>
+    </div>
+    <div class="auth-card" style="text-align: center;">
+        <div style="font-size: 50px; margin-bottom: 20px;">🛡️</div>
+        <h2>Verify Your E-mail Address</h2>
+        <p class="subtitle" style="margin-bottom: 30px;">
+            This part of the site requires us to verify that you are who you claim to be.
+            For this purpose, we require that you verify ownership of your e-mail address.
+        </p>
+        <p class="subtitle" style="margin-bottom: 30px; font-size: 14px;">
+            We have sent an e-mail to you for verification. Please click on the link inside that e-mail.
+            If you do not see the verification e-mail in your main inbox, check your spam folder.
+        </p>
+    </div>
+</div>
+</body>
+</html>
