@@ -78,7 +78,7 @@ CATEGORY_KEYWORDS = {
 
     "Food": {
         "Daily Food": [
-            "breakfast", "lunch", "dinner", "snacks", "tea", "coffee", "juice"
+            "breakfast", "lunch", "dinner", "snacks", "tea", "coffee", "juice","brunch"
         ],
         "Eating Out": [
             "restaurant", "fast food", "cafe", "food court", "street food",
@@ -664,3 +664,112 @@ def get_monthly_analytics(user):
         )
 
     return analytics
+
+
+# ---------------------------------------------------------------------------
+# Savings Goal Progress
+# ---------------------------------------------------------------------------
+
+def get_savings_progress(user):
+    """
+    Return progress data for the user's current-month savings goal.
+
+    Returns a dict with:
+        goal_set       — bool, whether a goal exists for this month
+        target         — Decimal, the goal amount (0 if none)
+        saved          — Decimal, net balance this month (income - expenses)
+        remaining      — Decimal, how much still needed (0 if achieved)
+        percentage     — int, progress percentage capped at 100
+        bar_width      — int, same as percentage (used in CSS width)
+        message        — str, motivational message
+        goal_obj       — SavingsGoal instance or None
+    """
+    from decimal import Decimal
+    from django.utils import timezone
+    from django.db.models import Sum, Case, When, Value, DecimalField
+    from .models import SavingsGoal
+
+    now = timezone.now()
+    current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    # Fetch this month's goal if it exists
+    try:
+        goal = SavingsGoal.objects.get(user=user, month=current_month_start.date())
+    except SavingsGoal.DoesNotExist:
+        goal = None
+
+    if goal is None:
+        return {
+            "goal_set":  False,
+            "target":    Decimal("0"),
+            "saved":     Decimal("0"),
+            "remaining": Decimal("0"),
+            "percentage": 0,
+            "bar_width":  0,
+            "message":   "Set a savings goal for this month to track your progress.",
+            "goal_obj":  None,
+        }
+
+    # Income - expenses for the current calendar month
+    result = Transaction.objects.filter(
+        user=user,
+        transaction_date__year=now.year,
+        transaction_date__month=now.month,
+    ).aggregate(
+        income=Sum(
+            Case(
+                When(trans_type="income", then="amount"),
+                default=Value(0),
+                output_field=DecimalField(),
+            )
+        ),
+        expense=Sum(
+            Case(
+                When(trans_type="expense", then="amount"),
+                default=Value(0),
+                output_field=DecimalField(),
+            )
+        ),
+    )
+
+    income  = result["income"]  or Decimal("0")
+    expense = abs(result["expense"] or Decimal("0"))
+    saved   = income - expense
+
+    target    = goal.target_amount
+    remaining = max(target - saved, Decimal("0"))
+
+    if target > 0:
+        raw_pct = int((saved / target) * 100)
+        percentage = max(0, min(raw_pct, 100))
+    else:
+        percentage = 0
+
+    bar_width = percentage
+
+    if saved <= 0:
+        message = "Start saving this month — every rupee counts! 💪"
+    elif percentage >= 100:
+        message = "🎉 Goal achieved! Outstanding financial discipline!"
+    elif percentage >= 75:
+        message = f"Almost there! Just {remaining:.0f} more to go. You've got this! 🚀"
+    elif percentage >= 50:
+        message = f"Great progress — halfway there! Keep it up! 💡"
+    else:
+        message = f"You're building momentum. {remaining:.0f} remaining this month."
+
+    # Update status if achieved
+    if percentage >= 100 and goal.status != "achieved":
+        goal.status = "achieved"
+        goal.save(update_fields=["status"])
+
+    return {
+        "goal_set":   True,
+        "target":     target,
+        "saved":      max(saved, Decimal("0")),
+        "remaining":  remaining,
+        "percentage": percentage,
+        "bar_width":  bar_width,
+        "message":    message,
+        "goal_obj":   goal,
+    }

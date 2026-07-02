@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
+
+from .country_data import get_currency_for_country
 
 
 class Transaction(models.Model):
@@ -83,7 +87,7 @@ class Transaction(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.description} - ₹{self.amount}"
+        return f"{self.description} - {self.amount}"
 
 
 class SupportRequest(models.Model):
@@ -98,6 +102,7 @@ class SupportRequest(models.Model):
 
     STATUS_CHOICES = [
         ("open", "Open"),
+        ("pending", "Pending"),
         ("resolved", "Resolved"),
     ]
 
@@ -126,3 +131,101 @@ class SupportRequest(models.Model):
 
     def __str__(self):
         return f"{self.username_or_email} - {self.issue_type}"
+
+
+# ---------------------------------------------------------------------------
+# UserProfile — Stores country + currency per user
+# ---------------------------------------------------------------------------
+
+class UserProfile(models.Model):
+    """Extended profile for a Django User — stores country and currency."""
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="profile",
+    )
+
+    country = models.CharField(
+        max_length=100,
+        blank=True,
+        default="India",
+    )
+
+    currency_symbol = models.CharField(
+        max_length=10,
+        blank=True,
+        default="₹",
+    )
+
+    currency_code = models.CharField(
+        max_length=10,
+        blank=True,
+        default="INR",
+    )
+
+    # When True the user has completed email verification
+    email_verified = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "User Profile"
+        verbose_name_plural = "User Profiles"
+
+    def __str__(self):
+        return f"{self.user.username} — {self.country} ({self.currency_code})"
+
+
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    """Auto-create a UserProfile whenever a new User is created."""
+    if created:
+        UserProfile.objects.get_or_create(user=instance)
+    else:
+        # Ensure profile exists for legacy users (e.g. superusers created via CLI)
+        UserProfile.objects.get_or_create(user=instance)
+
+
+# ---------------------------------------------------------------------------
+# SavingsGoal — Monthly savings target per user
+# ---------------------------------------------------------------------------
+
+class SavingsGoal(models.Model):
+    """A monthly savings target set by a user."""
+
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("achieved", "Achieved"),
+        ("missed", "Missed"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="savings_goals",
+    )
+
+    # Stored as the first day of the target month (e.g. 2026-07-01)
+    month = models.DateField(db_index=True)
+
+    target_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="active",
+    )
+
+    class Meta:
+        # One goal per user per month
+        unique_together = (("user", "month"),)
+        ordering = ["-month"]
+        verbose_name = "Savings Goal"
+        verbose_name_plural = "Savings Goals"
+
+    def __str__(self):
+        return f"{self.user.username} — {self.month.strftime('%B %Y')} goal"

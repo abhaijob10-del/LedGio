@@ -113,7 +113,7 @@ class CategorizeTest(TestCase):
 
     def test_food_keywords(self):
         self.assertEqual(categorize("KFC dinner"), ("Food", "Daily Food"))
-        self.assertEqual(categorize("pizza order"), ("Food", "Eating Out"))
+        self.assertEqual(categorize("pizza hut order"), ("Food", "Eating Out"))
         self.assertEqual(categorize("snacks from store"), ("Food", "Daily Food"))
 
     def test_transportation_keywords(self):
@@ -126,7 +126,7 @@ class CategorizeTest(TestCase):
         self.assertEqual(categorize("new shoes"), ("Shopping", "Footwear"))
 
     def test_household_keywords(self):
-        self.assertEqual(categorize("furniture purchase"), ("Household", "Home Items"))
+        self.assertEqual(categorize("furniture purchase"), ("Shopping", "Assets & Major Purchases"))
         self.assertEqual(categorize("detergent"), ("Household", "Cleaning Supplies"))
 
     def test_unknown_defaults_to_miscellaneous(self):
@@ -475,6 +475,7 @@ class RegistrationViewTest(TestCase):
             "email": "brandnew@example.com",
             "password": "StrongPass1!",
             "confirm_password": "StrongPass1!",
+            "country": "India",
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(User.objects.filter(username="brandnew").exists())

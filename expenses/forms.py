@@ -10,7 +10,8 @@ from decimal import Decimal, InvalidOperation
 from django import forms
 from django.contrib.auth.models import User
 
-from .models import Transaction, SupportRequest
+from .models import Transaction, SupportRequest, SavingsGoal
+from .country_data import get_country_choices
 
 
 class TransactionForm(forms.Form):
@@ -49,6 +50,10 @@ class RegistrationForm(forms.Form):
 
     username = forms.CharField(max_length=150, min_length=1)
     email = forms.EmailField()
+    country = forms.ChoiceField(
+        choices=get_country_choices(),
+        error_messages={"required": "Please select your country."},
+    )
     password = forms.CharField(min_length=8)
     confirm_password = forms.CharField(min_length=8)
 
@@ -101,3 +106,26 @@ class SupportRequestForm(forms.ModelForm):
         if not value:
             raise forms.ValidationError("Please describe your issue.")
         return value
+
+
+class SavingsGoalForm(forms.ModelForm):
+    """Form to create or update a monthly savings goal."""
+
+    class Meta:
+        model = SavingsGoal
+        fields = ["target_amount"]
+
+    def clean_target_amount(self):
+        amount = self.cleaned_data["target_amount"]
+        if amount <= 0:
+            raise forms.ValidationError("Target amount must be greater than zero.")
+        return amount
+
+
+class SupportReplyForm(forms.Form):
+    """Admin reply to a support request (future use placeholder)."""
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 4}),
+        max_length=2000,
+        min_length=10,
+    )

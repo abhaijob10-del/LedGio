@@ -1,0 +1,58 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Signup | LedGio</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-brand">
+        <h1>LedGio</h1>
+        <p>Almost Done</p>
+    </div>
+    <div class="auth-card">
+        <p class="balance-label">Complete Signup</p>
+        <h2>Final Step</h2>
+        <p class="subtitle" style="margin-bottom: 25px;">
+            You are about to use your Google account to login to LedGio. As a final step, please complete the following form:
+        </p>
+        
+        {% if form.errors %}
+        <div class="auth-error">
+            Please fix the errors below.
+        </div>
+        {% endif %}
+
+        <form method="POST" autocomplete="off" action="{% url 'socialaccount_signup' %}">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; color: var(--muted); margin-bottom: 8px;">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <p class="live-msg error-msg" style="margin-top: 5px;">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <button class="btn btn-primary" type="submit" style="width: 100%; margin-top: 10px;">Sign Up</button>
+        </form>
+    </div>
+</div>
+<style>
+    /* Style allauth inputs to match our theme */
+    .auth-card input, .auth-card select {
+        width: 100%; 
+        padding: 14px 20px; 
+        background: rgba(15,23,42,0.6); 
+        border: 1px solid rgba(255,255,255,0.1); 
+        border-radius: 14px; 
+        color: white; 
+        outline: none;
+    }
+</style>
+</body>
+</html>

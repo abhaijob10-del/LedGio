@@ -2,15 +2,17 @@
 Views for the LedGio expenses application.
 
 Handles dashboard, transactions CRUD, user auth, admin panel,
-support requests, and staff management.
+support requests, staff management, savings goals, and support detail.
 """
 
 import logging
+from datetime import timedelta, date
 
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.views import PasswordResetView
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -18,11 +20,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from datetime import timedelta
-
 from .decorators import admin_required
-from .forms import RegistrationForm, SupportRequestForm, TransactionForm
-from .models import SupportRequest, Transaction
+from .forms import RegistrationForm, SupportRequestForm, TransactionForm, SavingsGoalForm
+from .models import SupportRequest, Transaction, UserProfile, SavingsGoal
+from .country_data import get_currency_for_country
 from .expense_engine import (
     add_transaction,
     get_transactions,
@@ -31,6 +32,7 @@ from .expense_engine import (
     delete_transaction,
     update_transaction,
     get_monthly_analytics,
+    get_savings_progress,
 )
 
 logger = logging.getLogger(__name__)
@@ -48,12 +50,14 @@ def dashboard(request):
     insights = get_insights(request.user)
     monthly_analytics = get_monthly_analytics(request.user)
     recent_transactions = get_transactions(request.user)[:5]
+    savings_progress = get_savings_progress(request.user)
 
     return render(request, "dashboard.html", {
         "balance": balance,
         "insights": insights,
         "monthly_analytics": monthly_analytics,
         "recent_transactions": recent_transactions,
+        "savings_progress": savings_progress,
     })
 
 
@@ -179,10 +183,15 @@ def edit(request, id):
 
 @login_required
 def balance_view(request):
-    """Show the user's income/expense/balance summary."""
+    """Show the user's income/expense/balance summary with savings goal."""
 
     balance = get_balance(request.user)
-    return render(request, "balance.html", {"balance": balance})
+    savings_progress = get_savings_progress(request.user)
+
+    return render(request, "balance.html", {
+        "balance": balance,
+        "savings_progress": savings_progress,
+    })
 
 
 @login_required
@@ -204,14 +213,41 @@ def register_view(request):
         form = RegistrationForm(request.POST)
 
         if form.is_valid():
-            User.objects.create_user(
+            country = form.cleaned_data["country"]
+            symbol, code = get_currency_for_country(country)
+
+            user = User.objects.create_user(
                 username=form.cleaned_data["username"],
                 email=form.cleaned_data["email"],
                 password=form.cleaned_data["password"],
+                # Account is INACTIVE until email is verified
+                is_active=False,
             )
-            messages.success(
-                request, "Account created successfully. Please log in."
-            )
+
+            # Save country + currency to the auto-created UserProfile
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.country         = country
+            profile.currency_symbol = symbol
+            profile.currency_code   = code
+            profile.save()
+
+            # Send verification email via allauth
+            try:
+                from allauth.account.utils import send_email_confirmation
+                send_email_confirmation(request, user, signup=True)
+                messages.success(
+                    request,
+                    "Account created! Please check your email to verify your account before logging in.",
+                )
+            except Exception:
+                # Fallback: activate immediately if allauth email fails
+                user.is_active = True
+                user.save(update_fields=["is_active"])
+                messages.success(
+                    request,
+                    "Account created successfully. Please log in.",
+                )
+
             return redirect(reverse("login"))
 
         # Collect all form errors into a single string for the template
@@ -221,7 +257,6 @@ def register_view(request):
                 error_list.append(str(error))
 
         error = " ".join(error_list) if error_list else None
-
         return render(request, "register.html", {"error": error})
 
     return render(request, "register.html", {"error": None})
@@ -259,8 +294,70 @@ def check_user_availability(request):
 
 @login_required
 def profile_view(request):
-    """Show the user's profile page."""
-    return render(request, "profile.html")
+    """Show the user's profile page with country and currency info."""
+
+    try:
+        user_profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        user_profile = UserProfile.objects.create(user=request.user)
+
+    savings_progress = get_savings_progress(request.user)
+
+    return render(request, "profile.html", {
+        "user_profile": user_profile,
+        "savings_progress": savings_progress,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Savings Goal
+# ---------------------------------------------------------------------------
+
+@login_required
+def savings_goal_view(request):
+    """Set or update the current month's savings goal."""
+
+    now = timezone.now()
+    current_month = now.replace(day=1).date()
+
+    # Get existing goal for this month if any
+    existing_goal = SavingsGoal.objects.filter(
+        user=request.user, month=current_month
+    ).first()
+
+    if request.method == "POST":
+        form = SavingsGoalForm(request.POST, instance=existing_goal)
+
+        if form.is_valid():
+            goal = form.save(commit=False)
+            goal.user  = request.user
+            goal.month = current_month
+
+            if existing_goal:
+                goal.pk = existing_goal.pk
+
+            goal.save()
+            messages.success(
+                request,
+                f"Savings goal of {goal.target_amount} set for {now.strftime('%B %Y')}!"
+            )
+            return redirect(reverse("balance"))
+
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f"{field}: {error}")
+
+    else:
+        form = SavingsGoalForm(instance=existing_goal)
+
+    savings_progress = get_savings_progress(request.user)
+
+    return render(request, "savings_goal.html", {
+        "form": form,
+        "existing_goal": existing_goal,
+        "savings_progress": savings_progress,
+        "current_month": now.strftime("%B %Y"),
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -431,6 +528,52 @@ def support_inbox_view(request):
     return render(request, "support_inbox.html", {
         "support_requests": support_requests,
     })
+
+
+@admin_required
+def support_detail_view(request, id):
+    """Detailed view of a single support request — Feature 6."""
+
+    support_request = get_object_or_404(SupportRequest, id=id)
+
+    # Try to find associated user account from the submitted username/email
+    associated_user = User.objects.filter(
+        Q(username=support_request.username_or_email)
+        | Q(email=support_request.username_or_email)
+    ).first()
+
+    # Resolve user profile if found
+    user_profile = None
+    if associated_user:
+        try:
+            user_profile = associated_user.profile
+        except UserProfile.DoesNotExist:
+            pass
+
+    return render(request, "support_detail.html", {
+        "support_request": support_request,
+        "associated_user": associated_user,
+        "user_profile": user_profile,
+    })
+
+
+@admin_required
+@require_POST
+def update_support_status(request, id):
+    """Update the status of a support request (open/pending/resolved)."""
+
+    support_request = get_object_or_404(SupportRequest, id=id)
+    new_status = request.POST.get("status", "open")
+
+    valid_statuses = ["open", "pending", "resolved"]
+    if new_status in valid_statuses:
+        support_request.status = new_status
+        support_request.save(update_fields=["status"])
+        messages.success(request, f"Request marked as {new_status}.")
+    else:
+        messages.error(request, "Invalid status.")
+
+    return redirect(reverse("support_detail", args=[id]))
 
 
 # ---------------------------------------------------------------------------
