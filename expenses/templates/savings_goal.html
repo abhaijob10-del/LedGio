@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="form-card" style="max-width: 600px; margin: 0 auto;">
+        
+        <h2>🎯 Monthly Savings Goal</h2>
+        <p class="subtitle" style="margin-bottom: 25px;">
+            Set your target for {{ current_month }}. This will help you track your progress on the dashboard.
+        </p>
+
+        {% if form.errors %}
+        <div class="auth-error" style="margin-bottom: 20px;">
+            Please correct the errors below.
+        </div>
+        {% endif %}
+
+        <form method="POST" autocomplete="off">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: var(--muted); margin-bottom: 8px;">Target Amount ({{ currency_symbol }})</label>
+                <input type="number" 
+                       name="target_amount" 
+                       value="{{ form.target_amount.value|default:'' }}"
+                       placeholder="e.g. 10000"
+                       step="0.01"
+                       min="1"
+                       required
+                       style="width: 100%; padding: 14px 20px; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: white; font-size: 16px; outline: none;">
+                {% if form.target_amount.errors %}
+                    <p class="live-msg error-msg" style="margin-top: 5px;">{{ form.target_amount.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                {% if existing_goal %}Update Goal{% else %}Set Goal{% endif %}
+            </button>
+        </form>
+
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="{% url 'balance' %}" class="btn" style="color: var(--muted);">Cancel & Go Back</a>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

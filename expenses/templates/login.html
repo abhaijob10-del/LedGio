@@ -1,4 +1,5 @@
 {% load static %}
+{% load socialaccount %}
 
 <!DOCTYPE html>
 <html>
@@ -10,91 +11,101 @@
 
 <body>
 
-<div class="auth-page">
+    <div class="auth-page">
 
-    <div class="auth-brand">
+        <div class="auth-brand">
 
-        <h1>LedGio</h1>
+            <h1>LedGio</h1>
 
-        <p>
-            Track your income, expenses, and financial health in one premium dashboard.
-        </p>
+            <p>
+                Track your income, expenses, and financial health in one premium dashboard.
+            </p>
 
-    </div>
-
-    <div class="auth-card">
-
-        <p class="balance-label">Welcome back</p>
-
-        <h2>Login</h2>
-        
-        {% if form.errors %}
-        <div class="auth-error">
-           Invalid username or password.
         </div>
-        {% endif %}
 
-        <form method="POST" autocomplete="off">
+        <div class="auth-card">
 
-    {% csrf_token %}
+            <p class="balance-label">Welcome back</p>
 
-    <input type="text"
-           name="username"
-           placeholder="Username"
-           autocomplete="username"
-           required>
+            <h2>Login</h2>
 
-    <div class="password-wrapper">
+            {% if form.errors %}
+            <div class="auth-error">
+                Invalid username or password.
+            </div>
+            {% endif %}
 
-    <input type="password"
-       id="loginPassword"
-       name="password"
-       placeholder="Password"
-       autocomplete="new-password"
-       readonly
-       onfocus="this.removeAttribute('readonly');"
-       required>
+            <form method="POST" autocomplete="off">
 
-    <span class="toggle-password"
-      onclick="togglePassword('loginPassword', this)">
-    VIEW
-</span>
+                {% csrf_token %}
 
-</div>
+                <div class="social-login-wrapper" style="margin-bottom: 20px;">
+                    <a href="{% provider_login_url 'google' next='/?source=login' %}" class="btn btn-social"
+                        style="background: #ffffff; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                            style="width: 20px; height: 20px;">
+                        Continue with Google
+                    </a>
+                </div>
 
-    <button class="btn btn-primary" type="submit">
-        Login
-    </button>
+                <div class="divider"
+                    style="text-align: center; margin: 15px 0; color: var(--muted); position: relative;">
+                    <span style="background: var(--card); padding: 0 10px; position: relative; z-index: 1;">or</span>
+                    <div
+                        style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.1); z-index: 0;">
+                    </div>
+                </div>
 
-</form>
+                <input type="text" name="username" placeholder="Username" autocomplete="username" required>
 
-        <p class="auth-link">
-            Don't have an account?
-            <a href="/register/">Create account</a>
-        </p>
-        <p class="auth-link">
-            Need help?
-            <a href="/support/">Contact Support</a>
-        </p>
+                <div class="password-wrapper">
+
+                    <input type="password" id="loginPassword" name="password" placeholder="Password"
+                        autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');" required>
+
+                    <span class="toggle-password" onclick="togglePassword('loginPassword', this)">
+                        VIEW
+                    </span>
+
+                </div>
+
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <a href="{% url 'password_reset' %}" class="auth-link" style="font-size: 14px;">Forgot Password?</a>
+                </div>
+
+                <button class="btn btn-primary" type="submit">
+                    Login
+                </button>
+
+            </form>
+
+            <p class="auth-link">
+                Don't have an account?
+                <a href="/register/">Create account</a>
+            </p>
+            <p class="auth-link">
+                Need help?
+                <a href="/support/">Contact Support</a>
+            </p>
+
+        </div>
 
     </div>
 
-</div>
+    <script>
+        function togglePassword(inputId, button) {
 
-<script>
-function togglePassword(inputId, button){
+            const input = document.getElementById(inputId);
 
-    const input = document.getElementById(inputId);
-
-    if(input.type === "password"){
-        input.type = "text";
-        button.textContent = "Hide";
-    }else{
-        input.type = "password";
-        button.textContent = "Show";
-    }
-}
-</script>  
+            if (input.type === "password") {
+                input.type = "text";
+                button.textContent = "Hide";
+            } else {
+                input.type = "password";
+                button.textContent = "Show";
+            }
+        }
+    </script>
 
 </body>
 

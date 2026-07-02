@@ -105,11 +105,11 @@
                     <td>
                         {% if transaction.trans_type == "income" %}
                             <span class="amount-income">
-                                + ₹{{ transaction.amount|cut:"-" }}
+                                + {{ currency_symbol }}{{ transaction.amount|cut:"-" }}
                             </span>
                         {% else %}
                             <span class="amount-expense">
-                                - ₹{{ transaction.amount|cut:"-" }}
+                                - {{ currency_symbol }}{{ transaction.amount|cut:"-" }}
                             </span>
                         {% endif %}
                     </td>

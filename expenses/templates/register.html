@@ -1,4 +1,5 @@
 {% load static %}
+{% load socialaccount %}
 
 <!DOCTYPE html>
 <html>
@@ -37,6 +38,18 @@
 
     {% csrf_token %}
 
+    <div class="social-login-wrapper" style="margin-bottom: 20px;">
+        <a href="{% provider_login_url 'google' %}" class="btn btn-social" style="background: #ffffff; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 20px; height: 20px;">
+            Register with Google
+        </a>
+    </div>
+
+    <div class="divider" style="text-align: center; margin: 15px 0; color: var(--muted); position: relative;">
+        <span style="background: var(--card); padding: 0 10px; position: relative; z-index: 1;">or</span>
+        <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.1); z-index: 0;"></div>
+    </div>
+
     <input type="text"
        id="username"
        name="username"
@@ -45,6 +58,37 @@
        required>
 
 <p id="usernameMsg" class="live-msg"></p>
+
+<select name="country" required style="width: 100%; padding: 14px 20px; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: white; font-size: 15px; margin-bottom: 15px; outline: none;">
+    <option value="" disabled selected>— Select Country —</option>
+    <option value="Australia">Australia</option>
+    <option value="Bangladesh">Bangladesh</option>
+    <option value="Brazil">Brazil</option>
+    <option value="Canada">Canada</option>
+    <option value="China">China</option>
+    <option value="Denmark">Denmark</option>
+    <option value="Egypt">Egypt</option>
+    <option value="France">France</option>
+    <option value="Germany">Germany</option>
+    <option value="India">India</option>
+    <option value="Indonesia">Indonesia</option>
+    <option value="Japan">Japan</option>
+    <option value="Malaysia">Malaysia</option>
+    <option value="Mexico">Mexico</option>
+    <option value="Pakistan">Pakistan</option>
+    <option value="Philippines">Philippines</option>
+    <option value="Russia">Russia</option>
+    <option value="Saudi Arabia">Saudi Arabia</option>
+    <option value="Singapore">Singapore</option>
+    <option value="South Africa">South Africa</option>
+    <option value="South Korea">South Korea</option>
+    <option value="Spain">Spain</option>
+    <option value="Sri Lanka">Sri Lanka</option>
+    <option value="UAE">UAE</option>
+    <option value="United Kingdom">United Kingdom</option>
+    <option value="United States">United States</option>
+    <option value="Vietnam">Vietnam</option>
+</select>
 
 <input type="email"
        id="email"

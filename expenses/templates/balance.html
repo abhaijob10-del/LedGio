@@ -9,7 +9,7 @@
         <div>
             <p class="balance-label">Current Net Balance</p>
 
-            <h1>₹{{ balance.balance }}</h1>
+            <h1>{{ currency_symbol }}{{ balance.balance }}</h1>
 
             <p class="subtitle">
                 Your financial position after income and expenses.
@@ -31,7 +31,7 @@
             <div class="split-row">
                 <div class="split-info">
                     <span>Income</span>
-                    <strong>₹{{ balance.income }}</strong>
+                    <strong>{{ currency_symbol }}{{ balance.income }}</strong>
                 </div>
 
                 <div class="split-track">
@@ -42,7 +42,7 @@
             <div class="split-row">
                 <div class="split-info">
                     <span>Expense</span>
-                    <strong>₹{{ balance.expense }}</strong>
+                    <strong>{{ currency_symbol }}{{ balance.expense }}</strong>
                 </div>
 
                 <div class="split-track">
@@ -79,7 +79,7 @@
             </div>
 
             <div class="chart-balance">
-                ₹{{ balance.balance }}
+                {{ currency_symbol }}{{ balance.balance }}
             </div>
         </div>
 

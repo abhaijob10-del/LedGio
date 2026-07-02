@@ -27,7 +27,7 @@
 
         <div class="analytics-card">
             <h3>Total Spending</h3>
-            <h2>₹{{ insights.total_spending }}</h2>
+            <h2>{{ currency_symbol }}{{ insights.total_spending }}</h2>
             <p>Your total recorded expenses.</p>
         </div>
 
@@ -56,7 +56,7 @@
                 </div>
 
                 <div class="chart-balance">
-                    ₹{{ insights.total_spending }}
+                    {{ currency_symbol }}{{ insights.total_spending }}
                 </div>
             </div>
 
@@ -100,7 +100,7 @@
                     <p>Expense category</p>
                 </div>
 
-                <span>₹{{ amount }}</span>
+                <span>{{ currency_symbol }}{{ amount }}</span>
 
             </div>
 
@@ -189,7 +189,7 @@ new Chart(majorCtx, {
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        return "₹" + context.raw.toLocaleString("en-IN");
+                        return "{{ currency_symbol }}" + context.raw.toLocaleString("en-IN");
                     }
                 }
             }
@@ -200,7 +200,7 @@ new Chart(majorCtx, {
                 ticks: {
                     color: "#94a3b8",
                     callback: function(value) {
-                        return "₹" + Number(value).toLocaleString("en-IN");
+                        return "{{ currency_symbol }}" + Number(value).toLocaleString("en-IN");
                     }
                 },
                 grid: {
@@ -264,7 +264,7 @@ if(minorCategories.length > 0){
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return context.label + ": ₹" + context.raw.toLocaleString("en-IN");
+                            return context.label + ": {{ currency_symbol }}" + context.raw.toLocaleString("en-IN");
                         }
                     }
                 }

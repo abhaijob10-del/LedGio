@@ -28,19 +28,19 @@
         <div class="dashboard-card income-card">
             <div class="card-marker income-marker"></div>
             <h3>Total Income</h3>
-            <h2>₹{{ balance.income }}</h2>
+            <h2>{{ currency_symbol }}{{ balance.income }}</h2>
         </div>
 
         <div class="dashboard-card expense-card">
             <div class="card-marker expense-marker"></div>
             <h3>Total Expense</h3>
-            <h2>₹{{ balance.expense }}</h2>
+            <h2>{{ currency_symbol }}{{ balance.expense }}</h2>
         </div>
 
         <div class="dashboard-card balance-card">
             <div class="card-marker balance-marker"></div>
             <h3>Current Balance</h3>
-            <h2>₹{{ balance.balance }}</h2>
+            <h2>{{ currency_symbol }}{{ balance.balance }}</h2>
         </div>
 
         <div class="dashboard-card savings-card">
@@ -52,6 +52,48 @@
         </div>
 
     </div>
+
+    <!-- FEATURE 5: Monthly Savings Goal Card -->
+    {% if savings_progress.goal_set %}
+    <div class="savings-goal-card" style="margin-bottom:30px;">
+
+        <div class="savings-goal-header">
+            <div>
+                <h2>🎯 Monthly Goal Progress</h2>
+                <p class="subtitle">{{ savings_progress.message }}</p>
+            </div>
+            <a href="{% url 'savings_goal' %}" class="btn btn-edit">Edit Goal</a>
+        </div>
+
+        <div class="savings-goal-amounts">
+            <span class="goal-saved">{{ currency_symbol }}{{ savings_progress.saved }}</span>
+            <span class="goal-separator">of</span>
+            <span class="goal-target">{{ currency_symbol }}{{ savings_progress.target }}</span>
+        </div>
+
+        <div class="goal-progress-track">
+            <div class="goal-progress-fill" style="width:{{ savings_progress.bar_width }}%;"></div>
+        </div>
+
+        <div class="goal-progress-labels">
+            <span>{{ savings_progress.percentage }}% saved</span>
+            {% if savings_progress.remaining > 0 %}
+            <span>{{ currency_symbol }}{{ savings_progress.remaining }} remaining</span>
+            {% else %}
+            <span>🎉 Goal achieved!</span>
+            {% endif %}
+        </div>
+
+    </div>
+    {% else %}
+    <div class="savings-goal-empty" style="margin-bottom:30px;">
+        <h3>💡 Set a Savings Goal</h3>
+        <p>Track your monthly savings with a personal goal.</p>
+        <a href="{% url 'savings_goal' %}" class="btn btn-primary" style="margin-top:15px;display:inline-block;">
+            Set Goal
+        </a>
+    </div>
+    {% endif %}
 
     <div class="dashboard-main-grid">
 
@@ -69,7 +111,7 @@
                 </div>
 
                 <div class="chart-balance">
-                    ₹{{ balance.balance }}
+                    {{ currency_symbol }}{{ balance.balance }}
                 </div>
 
             </div>
@@ -109,11 +151,11 @@
 
                     {% if transaction.trans_type == "income" %}
                         <span class="amount-income">
-                            + ₹{{ transaction.amount|cut:"-" }}
+                            + {{ currency_symbol }}{{ transaction.amount|cut:"-" }}
                         </span>
                     {% else %}
                         <span class="amount-expense">
-                            - ₹{{ transaction.amount|cut:"-" }}
+                            - {{ currency_symbol }}{{ transaction.amount|cut:"-" }}
                         </span>
                     {% endif %}
 
