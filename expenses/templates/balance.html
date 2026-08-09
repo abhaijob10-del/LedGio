@@ -4,109 +4,158 @@
 
 <div class="page-container">
 
+    <!-- Hero Section -->
     <div class="balance-hero">
-
         <div>
             <p class="balance-label">Current Net Balance</p>
-
             <h1>{{ currency_symbol }}{{ balance.balance }}</h1>
-
-            <p class="subtitle">
-                Your financial position after income and expenses.
-            </p>
+            <p class="subtitle">Your financial position after income and expenses.</p>
         </div>
-
-        <div class="balance-pill">
+        <div class="balance-pill balance-pill-{{ balance.health_status|lower|cut:' ' }}">
             {{ balance.health_status }}
         </div>
-
     </div>
 
+    <!-- Overview Grid -->
     <div class="balance-split-grid">
 
         <div class="balance-panel">
-
             <h2>Income vs Expense</h2>
-
+            
             <div class="split-row">
                 <div class="split-info">
                     <span>Income</span>
                     <strong>{{ currency_symbol }}{{ balance.income }}</strong>
                 </div>
-
                 <div class="split-track">
                     <div class="split-fill income-fill" style="width:100%;"></div>
                 </div>
             </div>
 
-            <div class="split-row">
+            <div class="split-row" style="margin-top:16px;">
                 <div class="split-info">
                     <span>Expense</span>
                     <strong>{{ currency_symbol }}{{ balance.expense }}</strong>
                 </div>
-
                 <div class="split-track">
                     <div class="split-fill expense-fill" style="width:{{ balance.progress_width }}%;"></div>
                 </div>
             </div>
-
         </div>
 
         <div class="balance-panel">
-
             <h2>Savings Rate</h2>
-
-            <div class="savings-circle">
-                <span>
-                    {{ balance.savings_rate }}%
-                </span>
+            <div class="savings-circle-wrap">
+                <div class="savings-circle">
+                    <span>{{ balance.savings_rate }}%</span>
+                </div>
             </div>
-
-            <p class="subtitle center-text">
+            <p class="subtitle center-text" style="margin-top:16px;">
                 Percentage of income remaining after expenses.
             </p>
-
         </div>
 
     </div>
 
-    <div class="single-chart-container">
-
+    <!-- Health Status -->
+    <div class="single-chart-container" style="margin-bottom: 30px;">
         <div class="chart-header">
             <div>
                 <h2>Balance Health</h2>
                 <p>How much of your income is used by expenses.</p>
             </div>
-
             <div class="chart-balance">
                 {{ currency_symbol }}{{ balance.balance }}
             </div>
         </div>
 
         <div class="balance-progress">
-
             <div class="progress-track">
                 <div class="progress-fill" style="width:{{ balance.progress_width }}%;"></div>
             </div>
-
             <div class="progress-labels">
                 <span>Expense Usage</span>
-                <span>
-                    {{ balance.expense_usage }}%
-                </span>
+                <span>{{ balance.expense_usage }}%</span>
             </div>
-
         </div>
 
         <div class="balance-message">
-
             <h3>{{ balance.health_title }}</h3>
-
-            <p>
-                {{ balance.health_message }}
-            </p>
-
+            <p>{{ balance.health_message }}</p>
         </div>
+    </div>
+
+    <!-- Savings Goal Section -->
+    <div class="single-chart-container savings-goal-section">
+        
+        <div class="chart-header" style="align-items:flex-start;">
+            <div>
+                <h2>Monthly Savings Goal</h2>
+                <p>Track your target savings for {{ current_month|default:"this month" }}.</p>
+            </div>
+            <div>
+                {% if savings_progress.goal_set %}
+                    <a href="{% url 'savings_goal' %}" class="btn btn-primary" id="btn-edit-goal">Edit Goal</a>
+                {% else %}
+                    <a href="{% url 'savings_goal' %}" class="btn btn-primary" id="btn-set-goal">Set Goal</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if savings_progress.goal_set %}
+            <div class="savings-goal-card" style="margin-top: 20px;">
+                
+                <div class="savings-goal-header">
+                    <div>
+                        <h3>🎯 {{ savings_progress.goal_name }}</h3>
+                        <p class="subtitle">{{ savings_progress.message }}</p>
+                    </div>
+                </div>
+
+                <div class="savings-goal-amounts">
+                    <span class="goal-saved">{{ currency_symbol }}{{ savings_progress.saved }}</span>
+                    <span class="goal-separator">of</span>
+                    <span class="goal-target">{{ currency_symbol }}{{ savings_progress.target }}</span>
+                </div>
+
+                <!-- Animated Progress Bar -->
+                <div class="goal-progress-track">
+                    <div class="goal-progress-fill" style="width:{{ savings_progress.bar_width }}%;"></div>
+                </div>
+
+                <div class="goal-progress-labels">
+                    <span>{{ savings_progress.percentage }}% saved</span>
+                    {% if savings_progress.remaining > 0 %}
+                        <span>{{ currency_symbol }}{{ savings_progress.remaining }} remaining</span>
+                    {% else %}
+                        <span class="goal-achieved-label">🎉 Goal Achieved!</span>
+                    {% endif %}
+                </div>
+
+                {% if savings_progress.deadline %}
+                    <p class="goal-deadline" style="margin-top:12px;font-size:13px;color:var(--muted);">
+                        📅 Deadline: {{ savings_progress.deadline|date:"d M Y" }}
+                    </p>
+                {% endif %}
+
+            </div>
+
+            <!-- Delete Goal Form -->
+            <div style="margin-top: 24px; text-align: right;">
+                <form action="{% url 'goal_delete' %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this month\'s savings goal?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" id="btn-delete-goal">Delete Goal</button>
+                </form>
+            </div>
+
+        {% else %}
+            <div class="empty-state" style="margin-top: 20px;">
+                <div class="empty-icon">🎯</div>
+                <h3>No Goal Set</h3>
+                <p class="subtitle">You haven't set a savings goal for this month yet. Setting a goal helps you build better financial habits.</p>
+                <a href="{% url 'savings_goal' %}" class="btn btn-primary" style="margin-top:16px;">Create a Goal</a>
+            </div>
+        {% endif %}
 
     </div>
 

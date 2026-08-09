@@ -5,64 +5,163 @@
 
 <div class="page-container">
 
-    <div class="dashboard-hero">
+    <!-- ════════════════════════════════════════════════════════════════
+         HERO HEADER
+    ═══════════════════════════════════════════════════════════════════ -->
+    <div class="dashboard-hero" role="banner">
 
         <div>
             <p class="balance-label">Executive Overview</p>
-
             <h1>Welcome back, {{ request.user.username }}</h1>
-
-            <p class="subtitle">
-                Here is your complete financial snapshot for today.
-            </p>
+            <p class="subtitle">Here is your complete financial snapshot for today.</p>
         </div>
 
-        <a href="/profile/" class="profile-circle profile-link">
-          {{ request.user.username|first|upper }}
+        <a href="/profile/" class="profile-link" aria-label="Go to profile">
+            {% if profile_picture_url %}
+                <img src="{{ profile_picture_url }}" alt="{{ request.user.username }}" class="profile-circle profile-avatar-img">
+            {% else %}
+                <div class="profile-circle">{{ request.user.username|first|upper }}</div>
+            {% endif %}
         </a>
 
     </div>
 
-    <div class="cards-grid">
+    <!-- ════════════════════════════════════════════════════════════════
+         SMART FINANCIAL ALERTS
+    ═══════════════════════════════════════════════════════════════════ -->
+    {% if financial_alerts %}
+    <div class="alerts-section" role="region" aria-label="Financial Alerts">
+        {% for alert in financial_alerts %}
+        <div class="alert-banner alert-{{ alert.type }}" role="alert">
+            <span class="alert-icon">{{ alert.icon }}</span>
+            <div class="alert-content">
+                <strong>{{ alert.title }}</strong>
+                <span>{{ alert.body }}</span>
+            </div>
+            <button class="alert-close" onclick="this.parentElement.style.display='none'" aria-label="Dismiss alert">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-        <div class="dashboard-card income-card">
+    <!-- ════════════════════════════════════════════════════════════════
+         STAT CARDS
+    ═══════════════════════════════════════════════════════════════════ -->
+    <div class="cards-grid" role="region" aria-label="Financial Summary">
+
+        <div class="dashboard-card income-card" role="article" aria-label="Total Income">
             <div class="card-marker income-marker"></div>
+            <div class="card-icon">💚</div>
             <h3>Total Income</h3>
             <h2>{{ currency_symbol }}{{ balance.income }}</h2>
+            <p class="card-sub">All time</p>
         </div>
 
-        <div class="dashboard-card expense-card">
+        <div class="dashboard-card expense-card" role="article" aria-label="Total Expense">
             <div class="card-marker expense-marker"></div>
+            <div class="card-icon">❤️</div>
             <h3>Total Expense</h3>
             <h2>{{ currency_symbol }}{{ balance.expense }}</h2>
+            <p class="card-sub">All time</p>
         </div>
 
-        <div class="dashboard-card balance-card">
+        <div class="dashboard-card balance-card" role="article" aria-label="Current Balance">
             <div class="card-marker balance-marker"></div>
+            <div class="card-icon">💙</div>
             <h3>Current Balance</h3>
             <h2>{{ currency_symbol }}{{ balance.balance }}</h2>
+            <p class="card-sub">Net position</p>
         </div>
 
-        <div class="dashboard-card savings-card">
+        <div class="dashboard-card savings-card" role="article" aria-label="Savings Rate">
             <div class="card-marker savings-marker"></div>
+            <div class="card-icon">💜</div>
             <h3>Savings Rate</h3>
-            <h2>
-                {{ balance.savings_rate }}%
-            </h2>
+            <h2>{{ balance.savings_rate }}%</h2>
+            <p class="card-sub">Of income saved</p>
         </div>
 
     </div>
 
-    <!-- FEATURE 5: Monthly Savings Goal Card -->
+    <!-- ════════════════════════════════════════════════════════════════
+         SECONDARY CARDS ROW
+    ═══════════════════════════════════════════════════════════════════ -->
+    <div class="secondary-cards-grid">
+
+        <!-- Financial Health Score -->
+        <div class="dashboard-card health-card" role="article" aria-label="Financial Health Score">
+            <div class="health-score-content">
+                <div>
+                    <h3>Financial Health</h3>
+                    <div class="health-badge health-{{ balance.health_status|lower|cut:' ' }}">
+                        {{ balance.health_status }}
+                    </div>
+                    <p class="card-sub" style="margin-top:8px;">{{ balance.health_title }}</p>
+                </div>
+                <div class="health-ring-wrap">
+                    <svg class="health-ring" viewBox="0 0 60 60" aria-hidden="true">
+                        <circle class="ring-track" cx="30" cy="30" r="24" />
+                        <circle class="ring-fill ring-fill-{{ balance.health_status|lower|cut:' ' }}"
+                                cx="30" cy="30" r="24"
+                                stroke-dasharray="150.8"
+                                stroke-dashoffset="{{ balance.savings_rate|floatformat:0 }}" />
+                    </svg>
+                    <span class="health-ring-label">{{ balance.savings_rate }}%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Insight -->
+        <div class="dashboard-card insight-mini-card" role="article" aria-label="Quick Insight">
+            <div class="card-icon">💡</div>
+            <h3>Quick Insight</h3>
+            {% if balance.balance > 0 %}
+                <p>You're in positive territory. Your top spending category
+                {% if insights.highest_category %}is <strong>{{ insights.highest_category }}</strong>{% endif %}
+                — keep monitoring it.</p>
+            {% else %}
+                <p>Expenses exceed income. Review non-essential spending and build an emergency fund.</p>
+            {% endif %}
+        </div>
+
+        <!-- Support Ticket Status (for regular users) -->
+        {% if not request.user.is_staff %}
+        <div class="dashboard-card support-mini-card" role="article" aria-label="Support">
+            <div class="card-icon">🎧</div>
+            <h3>Need Help?</h3>
+            <p class="card-sub">Submit a support request anytime.</p>
+            <a href="/support/" class="btn btn-primary" style="margin-top:16px;font-size:13px;padding:10px 18px;" id="support-cta-btn">
+                Contact Support
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Upcoming Bills placeholder -->
+        <div class="dashboard-card upcoming-card" role="article" aria-label="Upcoming Bills">
+            <div class="card-icon">📅</div>
+            <h3>Upcoming Bills</h3>
+            <p class="card-sub">Bill tracking coming soon.</p>
+            <div class="upcoming-placeholder">
+                <span>🔔 Set reminders for recurring expenses</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SAVINGS GOAL CARD
+    ═══════════════════════════════════════════════════════════════════ -->
     {% if savings_progress.goal_set %}
-    <div class="savings-goal-card" style="margin-bottom:30px;">
+    <div class="savings-goal-card" role="region" aria-label="Savings Goal">
 
         <div class="savings-goal-header">
             <div>
-                <h2>🎯 Monthly Goal Progress</h2>
+                <h2>🎯 {{ savings_progress.goal_name }}</h2>
                 <p class="subtitle">{{ savings_progress.message }}</p>
             </div>
-            <a href="{% url 'savings_goal' %}" class="btn btn-edit">Edit Goal</a>
+            <div style="display:flex;gap:10px;align-items:center;">
+                <a href="{% url 'savings_goal' %}" class="btn btn-edit" id="edit-goal-btn">Edit Goal</a>
+            </div>
         </div>
 
         <div class="savings-goal-amounts">
@@ -71,8 +170,9 @@
             <span class="goal-target">{{ currency_symbol }}{{ savings_progress.target }}</span>
         </div>
 
-        <div class="goal-progress-track">
-            <div class="goal-progress-fill" style="width:{{ savings_progress.bar_width }}%;"></div>
+        <!-- Animated Progress Bar -->
+        <div class="goal-progress-track" role="progressbar" aria-valuenow="{{ savings_progress.percentage }}" aria-valuemin="0" aria-valuemax="100">
+            <div class="goal-progress-fill" id="goal-bar" style="width:0%;" data-target="{{ savings_progress.bar_width }}"></div>
         </div>
 
         <div class="goal-progress-labels">
@@ -80,251 +180,244 @@
             {% if savings_progress.remaining > 0 %}
             <span>{{ currency_symbol }}{{ savings_progress.remaining }} remaining</span>
             {% else %}
-            <span>🎉 Goal achieved!</span>
+            <span class="goal-achieved-label">🎉 Goal Achieved!</span>
             {% endif %}
         </div>
 
+        {% if savings_progress.deadline %}
+        <p class="goal-deadline">📅 Deadline: {{ savings_progress.deadline|date:"d M Y" }}</p>
+        {% endif %}
+
     </div>
+
+    {% if savings_progress.percentage >= 100 %}
+    <!-- Goal achieved! Show confetti and success card -->
+    <div class="goal-celebration" role="alert" aria-live="assertive">
+        <div class="celebration-icon">🎉</div>
+        <h2>Congratulations!</h2>
+        <p>You've achieved your savings goal of {{ currency_symbol }}{{ savings_progress.target }}!</p>
+        <a href="{% url 'savings_goal' %}" class="btn btn-primary" id="set-new-goal-btn">Set New Goal</a>
+    </div>
+    <script>
+    (function() {
+        // Delay slightly to let page render
+        setTimeout(function() {
+            if (window.LedGio && window.LedGio.confetti) {
+                window.LedGio.confetti();
+            }
+        }, 600);
+    })();
+    </script>
+    {% endif %}
+
     {% else %}
-    <div class="savings-goal-empty" style="margin-bottom:30px;">
+    <div class="savings-goal-empty" role="region">
         <h3>💡 Set a Savings Goal</h3>
-        <p>Track your monthly savings with a personal goal.</p>
-        <a href="{% url 'savings_goal' %}" class="btn btn-primary" style="margin-top:15px;display:inline-block;">
+        <p>Track your monthly savings with a personal goal and stay motivated.</p>
+        <a href="{% url 'savings_goal' %}" class="btn btn-primary" style="margin-top:15px;display:inline-block;" id="set-goal-btn">
             Set Goal
         </a>
     </div>
     {% endif %}
 
+    <!-- ════════════════════════════════════════════════════════════════
+         CHARTS + RECENT ACTIVITY
+    ═══════════════════════════════════════════════════════════════════ -->
     <div class="dashboard-main-grid">
 
         <div class="single-chart-container dashboard-chart">
 
             <div class="chart-header">
-
                 <div>
                     <h2>Financial Overview</h2>
                     <p>Income vs Expense distribution</p>
-
-                    <div class="live-badge">
-                        ● Live Analytics
-                    </div>
+                    <div class="live-badge">● Live Analytics</div>
                 </div>
-
-                <div class="chart-balance">
-                    {{ currency_symbol }}{{ balance.balance }}
-                </div>
-
+                <div class="chart-balance">{{ currency_symbol }}{{ balance.balance }}</div>
             </div>
 
             <div class="chart-wrapper">
-                <canvas id="financeChart"></canvas>
+                <canvas id="financeChart" aria-label="Income vs Expense doughnut chart" role="img"></canvas>
             </div>
 
         </div>
+
         <div class="single-chart-container">
 
-    <div class="chart-header">
-        <div>
-            <h2>Monthly Trend</h2>
-            <p>Income and expense movement over time.</p>
+            <div class="chart-header">
+                <div>
+                    <h2>Monthly Trend</h2>
+                    <p>Income and expense movement over time.</p>
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <canvas id="monthlyTrendChart" aria-label="Monthly trend line chart" role="img"></canvas>
+            </div>
+
         </div>
-    </div>
 
-     <div class="chart-wrapper">
-        <canvas id="monthlyTrendChart"></canvas>
-     </div>
-
-    </div> 
-
-        <div class="recent-panel">
+        <!-- Recent Activity -->
+        <div class="recent-panel" role="region" aria-label="Recent Transactions">
 
             <h2>Recent Activity</h2>
 
             {% for transaction in recent_transactions %}
+            <div class="recent-row">
 
-                <div class="recent-row">
-
+                <div class="recent-row-left">
+                    <div class="recent-icon {% if transaction.trans_type == 'income' %}recent-icon-income{% else %}recent-icon-expense{% endif %}">
+                        {% if transaction.trans_type == "income" %}💚{% else %}❤️{% endif %}
+                    </div>
                     <div>
                         <strong>{{ transaction.description }}</strong>
-                        <p>{{ transaction.date|date:"d M Y" }}</p>
+                        <p>{{ transaction.date|date:"d M Y" }} · {{ transaction.category }}</p>
                     </div>
-
-                    {% if transaction.trans_type == "income" %}
-                        <span class="amount-income">
-                            + {{ currency_symbol }}{{ transaction.amount|cut:"-" }}
-                        </span>
-                    {% else %}
-                        <span class="amount-expense">
-                            - {{ currency_symbol }}{{ transaction.amount|cut:"-" }}
-                        </span>
-                    {% endif %}
-
                 </div>
 
+                {% if transaction.trans_type == "income" %}
+                    <span class="amount-income">+ {{ currency_symbol }}{{ transaction.amount|cut:"-" }}</span>
+                {% else %}
+                    <span class="amount-expense">- {{ currency_symbol }}{{ transaction.amount|cut:"-" }}</span>
+                {% endif %}
+
+            </div>
             {% empty %}
-
-                <p class="subtitle">
-                    No recent transactions yet.
-                </p>
-
+            <div class="empty-state">
+                <p class="subtitle">No recent transactions yet.</p>
+                <a href="{% url 'add' %}" class="btn btn-primary" style="margin-top:16px;" id="add-first-tx-btn">Add Transaction</a>
+            </div>
             {% endfor %}
+
+            {% if recent_transactions %}
+            <div style="margin-top:20px;text-align:center;">
+                <a href="{% url 'transactions' %}" class="btn" style="color:var(--muted);font-size:13px;" id="view-all-tx-btn">View All Transactions →</a>
+            </div>
+            {% endif %}
 
         </div>
 
     </div>
 
-    <div class="dashboard-insight">
-
+    <!-- Dashboard Insight Banner -->
+    <div class="dashboard-insight" role="complementary">
         {% if balance.balance > 0 %}
             <h3>Quick Insight 💡</h3>
-            <p>
-                You are currently maintaining a positive balance. Keep monitoring your top expense categories to protect your savings.
+            <p>You are maintaining a positive balance.
+            {% if insights.highest_category %}
+            Your highest spending category is <strong>{{ insights.highest_category }}</strong> —
+            keep monitoring it to protect your savings.
+            {% endif %}
             </p>
         {% else %}
-            <h3>Spending Warning</h3>
-            <p>
-                Your expenses are close to or above your income. Review your spending and reduce non-essential transactions.
-            </p>
+            <h3>⚠️ Spending Warning</h3>
+            <p>Your expenses are close to or above your income. Review your spending and reduce non-essential transactions.</p>
         {% endif %}
-
     </div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- ═══════════════════════════════════════════════════════════════════════
+     CHARTS
+════════════════════════════════════════════════════════════════════════= -->
+<!-- Chart.js is loaded globally via base.html -->
 
 <script>
+/* ── Doughnut Chart ──────────────────────────────────────────────────── */
+const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+const labelColor = isLight ? '#334155' : '#ffffff';
+const gridColor  = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)';
 
 const financeCtx = document.getElementById('financeChart');
 
 new Chart(financeCtx, {
-
     type: 'doughnut',
-
     data: {
-
         labels: ['Income', 'Expense'],
-
         datasets: [{
-
-            data: [
-                {{ balance.income }},
-                {{ balance.expense }}
-            ],
-
-            backgroundColor: [
-                '#22c55e',
-                '#ef4444'
-            ],
-
+            data: [{{ balance.income }}, {{ balance.expense }}],
+            backgroundColor: ['#22c55e', '#ef4444'],
             borderWidth: 0,
-            hoverOffset: 12
-
+            hoverOffset: 14
         }]
     },
-
     options: {
-
         responsive: true,
         maintainAspectRatio: false,
         cutout: '72%',
-
+        animation: { animateRotate: true, duration: 1000 },
         plugins: {
-
             legend: {
-
                 position: 'bottom',
-
-                labels: {
-                    color: '#ffffff',
-                    padding: 20,
-                    font: {
-                        size: 14
-                    }
-                }
-
+                labels: { color: labelColor, padding: 20, font: { size: 14, family: 'Inter' } }
             }
-
         }
-
     }
-
 });
 
-</script>
-
-<script>
-
+/* ── Monthly Trend Chart ────────────────────────────────────────────── */
 const monthlyTrendCtx = document.getElementById('monthlyTrendChart');
 
 new Chart(monthlyTrendCtx, {
-
     type: 'line',
-
     data: {
-
-        labels: [
-            {% for month in monthly_analytics.keys %}
-                "{{ month }}",
-            {% endfor %}
-        ],
-
+        labels: [{% for month in monthly_analytics.keys %}"{{ month }}",{% endfor %}],
         datasets: [
-
             {
                 label: 'Income',
-                data: [
-                    {% for data in monthly_analytics.values %}
-                        {{ data.income }},
-                    {% endfor %}
-                ],
+                data: [{% for data in monthly_analytics.values %}{{ data.income }},{% endfor %}],
                 borderColor: '#22c55e',
-                tension: 0.4
+                backgroundColor: 'rgba(34,197,94,0.08)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#22c55e',
+                pointRadius: 4,
             },
-
             {
                 label: 'Expense',
-                data: [
-                    {% for data in monthly_analytics.values %}
-                        {{ data.expense }},
-                    {% endfor %}
-                ],
+                data: [{% for data in monthly_analytics.values %}{{ data.expense }},{% endfor %}],
                 borderColor: '#ef4444',
-                tension: 0.4
+                backgroundColor: 'rgba(239,68,68,0.08)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#ef4444',
+                pointRadius: 4,
             }
-
         ]
     },
-
     options: {
-
         responsive: true,
         maintainAspectRatio: false,
-
+        animation: { duration: 1000 },
         plugins: {
-            legend: {
-                labels: {
-                    color: '#ffffff'
-                }
-            }
+            legend: { labels: { color: labelColor, font: { family: 'Inter' } } }
         },
-
         scales: {
-            x: {
-                ticks: {
-                    color: '#94a3b8'
-                }
-            },
-            y: {
-                ticks: {
-                    color: '#94a3b8'
-                }
-            }
+            x: { ticks: { color: '#94a3b8', font: { family: 'Inter' } }, grid: { color: gridColor } },
+            y: { ticks: { color: '#94a3b8', font: { family: 'Inter' } }, grid: { color: gridColor } }
+        }
+    }
+});
+
+/* ── Animated Goal Progress Bar ─────────────────────────────────────── */
+(function () {
+    const bar = document.getElementById('goal-bar');
+    if (!bar) return;
+    const target = parseFloat(bar.dataset.target) || 0;
+    let current = 0;
+    const step = target / 60;
+
+    function animate() {
+        if (current < target) {
+            current = Math.min(current + step, target);
+            bar.style.width = current + '%';
+            requestAnimationFrame(animate);
         }
     }
 
-});
-
+    // Start after page paint
+    setTimeout(animate, 300);
+})();
 </script>
 
 {% endblock %}

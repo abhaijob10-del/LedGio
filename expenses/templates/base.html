@@ -1,90 +1,134 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LedGio</title>
+    <title>LedGio — Smart Finance Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=20260806">
 
-    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <!-- Chart.js loaded once here so dashboard + insights share one cached request -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Theme must run before first paint to avoid flash-of-wrong-theme. Inline is intentional. -->
+    <script>
+    (function () {
+        var saved = localStorage.getItem('ledgio-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+    })();
+    </script>
 </head>
 
 <body>
-   
-    <div class="navbar">
 
-        <div class="logo">
-            LedGio
-        </div>
+    <!-- ═══ TOAST NOTIFICATION CONTAINER ═══════════════════════════════════ -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- ═══ CONFETTI CANVAS ═════════════════════════════════════════════════ -->
+    <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none;"></canvas>
+
+    <!-- ═══ NAVBAR ══════════════════════════════════════════════════════════ -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+
+        <div class="logo" aria-label="LedGio">LedGio</div>
 
         <div class="nav-links">
 
 {% if request.user.is_staff %}
 
     <a href="/ledgio-admin/"
-       class="nav-item {% if '/ledgio-admin/' in request.path %}active{% endif %}">
-        Admin Dashboard
+       id="nav-admin"
+       class="nav-item {% if '/ledgio-admin/' in request.path %}active{% endif %}"
+       aria-label="Admin Dashboard">
+        🛡️ Admin Dashboard
     </a>
 
     <a href="/users/"
-       class="nav-item {% if '/users/' in request.path %}active{% endif %}">
-        Users
+       id="nav-users"
+       class="nav-item {% if '/users/' in request.path %}active{% endif %}"
+       aria-label="User Management">
+        👥 Users
     </a>
 
     <a href="/support-inbox/"
-       class="nav-item {% if '/support-inbox/' in request.path %}active{% endif %}">
-        Support Inbox
+       id="nav-support-inbox"
+       class="nav-item {% if '/support-inbox/' in request.path %}active{% endif %}"
+       aria-label="Support Inbox">
+        📬 Support Inbox
     </a>
 
     <a href="/staff-management/"
-       class="nav-item {% if '/staff-management/' in request.path %}active{% endif %}">
-        Staff Management
+       id="nav-staff"
+       class="nav-item {% if '/staff-management/' in request.path %}active{% endif %}"
+       aria-label="Staff Management">
+        ⚙️ Staff
     </a>
 
 {% else %}
 
-    <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
-        Dashboard
+    <a href="/" id="nav-dashboard" class="nav-item {% if request.path == '/' %}active{% endif %}" aria-label="Dashboard">
+        📊 Dashboard
     </a>
 
-    <a href="/transactions/" class="nav-item {% if '/transactions/' in request.path %}active{% endif %}">
-        Transactions
+    <a href="/transactions/" id="nav-transactions" class="nav-item {% if '/transactions/' in request.path %}active{% endif %}" aria-label="Transactions">
+        💳 Transactions
     </a>
 
-    <a href="/insights/" class="nav-item {% if '/insights/' in request.path %}active{% endif %}">
-        Analytics
+    <a href="/insights/" id="nav-insights" class="nav-item {% if '/insights/' in request.path %}active{% endif %}" aria-label="Analytics">
+        📈 Analytics
     </a>
 
-    <a href="/balance/" class="nav-item {% if '/balance/' in request.path %}active{% endif %}">
-        Balance
+    <a href="/balance/" id="nav-balance" class="nav-item {% if '/balance/' in request.path %}active{% endif %}" aria-label="Balance">
+        💰 Balance
     </a>
 
 {% endif %}
 
     <a href="/profile/"
-       class="nav-item {% if '/profile/' in request.path %}active{% endif %}">
+       id="nav-profile"
+       class="nav-item {% if '/profile/' in request.path %}active{% endif %}"
+       aria-label="Profile">
         Profile
     </a>
 
-    <a href="/logout/" class="nav-item">
+    <a href="/logout/" id="nav-logout" class="nav-item" aria-label="Logout">
         Logout
     </a>
 
-</div>
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme" title="Toggle dark/light theme">
+        <span class="theme-icon">🌙</span>
+    </button>
 
+        </div>
+
+    </nav>
+
+    <!-- ═══ DJANGO MESSAGES (rendered as data for JS toasts) ═══════════════ -->
+    {% if messages %}
+    <div id="django-messages" style="display:none;" aria-hidden="true">
+        {% for message in messages %}
+        <span data-level="{{ message.tags }}" data-text="{{ message }}"></span>
+        {% endfor %}
     </div>
+    {% endif %}
 
-    <div class="main-container">
+    <!-- ═══ MAIN CONTENT ════════════════════════════════════════════════════ -->
+    <main class="main-container" role="main">
 
         {% block content %}
-
         {% endblock %}
 
-    </div>
+    </main>
+
+<!-- Global scripts — defer-loaded so they don't block page render -->
+<script src="{% static 'ledgio.js' %}" defer></script>
 
 </body>
-
 </html>

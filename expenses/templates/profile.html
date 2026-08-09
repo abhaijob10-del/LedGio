@@ -1,82 +1,349 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block content %}
+{% with social_accounts=request.user.socialaccount_set.all %}
 
 <div class="page-container">
-
-    <div class="profile-hero">
-
-        <div>
-            <p class="balance-label">Account Center</p>
-            <h1>Profile</h1>
-            <p class="subtitle">
-                Manage your LedGio account information.
-            </p>
-        </div>
-
-        <div class="profile-circle profile-large">
-            {{ request.user.username|first|upper }}
-        </div>
-
+    
+    <div class="dashboard-hero" style="text-align:center; padding-bottom:10px;">
+        <h1>Your Profile</h1>
+        <p class="subtitle">Manage your personal information and security settings.</p>
     </div>
 
-    <div class="profile-grid">
+    <div class="profile-grid" style="display:grid; grid-template-columns: 1fr 2fr; gap: 30px; margin-top: 30px;">
+        
+        <!-- Left Column: Picture & Info -->
+        <div class="profile-left">
+            <div class="dashboard-card" style="text-align: center;">
+                
+                <!-- Profile Picture -->
+                <div class="profile-picture-wrapper" style="position:relative; width:120px; height:120px; margin:0 auto 20px;">
+                    {% if user_profile.profile_picture %}
+                        <img src="{{ user_profile.profile_picture.url }}" alt="{{ request.user.username }}" class="profile-avatar-img" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--border-color);">
+                    {% else %}
+                        <div class="profile-circle" style="width:120px; height:120px; font-size:48px; border:3px solid var(--border-color);">
+                            {{ request.user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
 
-        <div class="profile-card">
+                <h3>{{ request.user.username }}</h3>
+                <p class="subtitle">{{ request.user.email }}</p>
+                
+                {% if social_accounts %}
+                    <div style="margin-top:15px; display:inline-block; padding:5px 12px; background:rgba(66, 133, 244, 0.1); color:#4285f4; border-radius:20px; font-size:12px; font-weight:600;">
+                        <span style="margin-right:5px;">G</span> Connected via Google
+                    </div>
+                {% endif %}
 
-            <h2>Account Details</h2>
+                <hr style="border:0; border-top:1px solid var(--border-color); margin:20px 0;">
 
-            <div class="profile-row">
-                <span>Username</span>
-                <strong>{{ request.user.username }}</strong>
+                <div class="profile-meta" style="text-align:left; font-size:14px; color:var(--muted);">
+                    <p style="margin-bottom:10px;"><strong>Country:</strong> {{ user_profile.country|default:"Not specified" }}</p>
+                    <p style="margin-bottom:10px;"><strong>Currency:</strong> {{ user_profile.currency_code }} ({{ user_profile.currency_symbol }})</p>
+                    <p><strong>Joined:</strong> {{ request.user.date_joined|date:"d M Y" }}</p>
+                </div>
+
+                <!-- Picture Upload Form -->
+                <div style="margin-top:20px; text-align:left;">
+                    <form method="POST" enctype="multipart/form-data" action="{% url 'profile' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="upload_picture">
+                        <label for="id_profile_picture" style="display:block; font-size:13px; margin-bottom:8px; color:var(--text-color);">Update Picture</label>
+                        <input type="file" name="profile_picture" id="id_profile_picture" accept="image/*" style="width:100%; font-size:13px; margin-bottom:10px; color:var(--text-color);">
+                        <button type="submit" class="btn btn-primary" style="width:100%; font-size:13px; padding:8px;">Upload Image</button>
+                    </form>
+                    
+                    {% if user_profile.profile_picture %}
+                    <form id="password-change-form" method="POST" style="margin-top:10px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_picture">
+                        <button type="submit" class="btn" style="width:100%; font-size:13px; padding:8px; color:var(--error); border:1px solid var(--error-bg); background:transparent;">Remove Picture</button>
+                    </form>
+                    {% endif %}
+                </div>
+
             </div>
-
-            <div class="profile-row">
-                <span>Email</span>
-                <strong>{{ request.user.email }}</strong>
-            </div>
-
-            <div class="profile-row">
-    <span>Status</span>
-
-    <strong>
-        {% if request.user.is_active %}
-            Active
-        {% else %}
-            Inactive
-        {% endif %}
-    </strong>
-</div>
-
-            <div class="profile-row">
-                <span>Date Joined</span>
-                <strong>{{ request.user.date_joined|date:"d M Y" }}</strong>
-            </div>
-
-            <div class="profile-row">
-                <span>Last Login</span>
-                <strong>{{ request.user.last_login|date:"d M Y, h:i A" }}</strong>
-            </div>
-
         </div>
 
-        <div class="profile-card">
+        <!-- Right Column: Edit Forms -->
+        <div class="profile-right">
+            
+            <!-- Overview Section (Shown by default) -->
+            <div id="profile-overview" class="dashboard-card" {% if profile_form.errors or password_form.errors %}style="display: none;"{% endif %}>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+                    <div>
+                        <h3>Profile Overview</h3>
+                        <p class="subtitle">Your current account details.</p>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="toggleEditForms()">Edit Profile Details</button>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <p class="subtitle" style="font-size: 14px; margin-bottom: 5px;">Username</p>
+                    <p style="font-size: 18px; font-weight: 600;">{{ request.user.username }}</p>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <p class="subtitle" style="font-size: 14px; margin-bottom: 5px;">Email Address</p>
+                    <p style="font-size: 18px; font-weight: 600;">{{ request.user.email }}</p>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <p class="subtitle" style="font-size: 14px; margin-bottom: 5px;">Security Setting</p>
+                    {% if social_accounts %}
+                        <p style="font-size: 16px;">Managed via Google OAuth</p>
+                    {% else %}
+                        <p style="font-size: 16px;">Password Protected (••••••••)</p>
+                    {% endif %}
+                </div>
+            </div>
 
-            <h2>Security</h2>
+            <!-- Edit Forms (Hidden by default) -->
+            <div id="profile-edit-forms" {% if profile_form.errors or password_form.errors %}style="display: block;"{% else %}style="display: none;"{% endif %}>
+                
+                <div style="margin-bottom: 20px;">
+                    <button type="button" class="btn" style="background: transparent; color: var(--muted); border: 1px solid var(--border-color); padding: 8px 16px; font-size: 14px;" onclick="toggleEditForms()">← Back to Overview</button>
+                </div>
 
-            <p class="subtitle">
-                Your account is protected using Django authentication and hashed passwords.
-            </p>
+                <!-- Update Info Form -->
+                <div class="dashboard-card" style="margin-bottom: 30px;">
+                    <h3>Edit Profile Information</h3>
+                    <p class="subtitle" style="margin-bottom:20px;">Update your username and email address.</p>
+                    
+                    <form method="POST" action="{% url 'profile' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_profile">
+                        
+                        <div class="form-group">
+                            <label for="id_username">Username</label>
+                            <input type="text" name="username" id="id_username" value="{{ profile_form.username.value|default:request.user.username }}" class="form-control" required>
+                            {% if profile_form.username.errors %}
+                                <div style="color: var(--red); font-size: 13px; margin-top: 5px;">{{ profile_form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
 
-            <a href="/logout/" class="btn btn-danger" style="margin-top:25px;">
-                Logout
-            </a>
+                        <div class="form-group">
+                            <label for="id_email">Email Address</label>
+                            <input type="email" name="email" id="id_email" value="{{ profile_form.email.value|default:request.user.email }}" class="form-control" required>
+                            {% if profile_form.email.errors %}
+                                <div style="color: var(--red); font-size: 13px; margin-top: 5px;">{{ profile_form.email.errors.0 }}</div>
+                            {% endif %}
+                            {% if request.user.socialaccount_set.all %}
+                                <small style="color:var(--warning); display:block; margin-top:5px;">
+                                    Note: Since you log in with Google, changing this won't change your Google login email.
+                                </small>
+                            {% endif %}
+                        </div>
 
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+
+                <!-- Change Password Form -->
+                {% if not social_accounts %}
+                <div class="dashboard-card">
+                    <h3>Change Password</h3>
+                    <p class="subtitle" style="margin-bottom:20px;">
+                        Ensure your account is using a long, random password to stay secure.
+                    </p>
+
+                    <form id="change-password-form" method="POST" action="{% url 'ajax_change_password' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_password">
+
+                        <!-- Current Password -->
+                        <div class="form-group">
+                            <label for="id_current_password">Current Password</label>
+                            <div style="position:relative;">
+                                <input
+                                    type="password"
+                                    name="current_password"
+                                    id="id_current_password"
+                                    class="form-control"
+                                    autocomplete="current-password"
+                                    style="padding-right:44px;"
+                                    required
+                                >
+                                <button type="button" class="pw-toggle" data-target="id_current_password"
+                                    style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--muted); font-size:13px;">
+                                    Show
+                                </button>
+                            </div>
+                            <div id="err-current_password" style="color:red;font-size:13px;margin-top:5px;display:none;"></div>
+                        </div>
+
+                        <!-- New Password -->
+                        <div class="form-group">
+                            <label for="id_new_password">New Password</label>
+                            <div style="position:relative;">
+                                <input
+                                    type="password"
+                                    name="new_password"
+                                    id="id_new_password"
+                                    class="form-control"
+                                    autocomplete="new-password"
+                                    style="padding-right:44px;"
+                                    required
+                                >
+                                <button type="button" class="pw-toggle" data-target="id_new_password"
+                                    style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--muted); font-size:13px;">
+                                    Show
+                                </button>
+                            </div>
+                            <div id="err-new_password" style="color:red;font-size:13px;margin-top:5px;display:none;"></div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="form-group">
+                            <label for="id_confirm_password">Confirm New Password</label>
+                            <div style="position:relative;">
+                                <input
+                                    type="password"
+                                    name="confirm_password"
+                                    id="id_confirm_password"
+                                    class="form-control"
+                                    autocomplete="new-password"
+                                    style="padding-right:44px;"
+                                    required
+                                >
+                                <button type="button" class="pw-toggle" data-target="id_confirm_password"
+                                    style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--muted); font-size:13px;">
+                                    Show
+                                </button>
+                            </div>
+                            <div id="password-error" style="display:none; margin-top:6px; font-size:13px;"></div>
+                            <div id="err-confirm_password" style="color:red;font-size:13px;margin-top:5px;display:none;"></div>
+                            <div id="err-non_field" style="color:red;font-size:13px;margin-top:5px;display:none;"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
         </div>
-
     </div>
+</div>        
 
-</div>
+<!-- Simple responsive CSS for profile grid -->
+<style>
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
 
+<script>
+    function toggleEditForms() {
+        var overview = document.getElementById("profile-overview");
+        var forms = document.getElementById("profile-edit-forms");
+
+        if (forms.style.display === "none") {
+            overview.style.display = "none";
+            forms.style.display = "block";
+        } else {
+            forms.style.display = "none";
+            overview.style.display = "block";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // ---- Show/Hide toggle ----
+        document.querySelectorAll(".pw-toggle").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var input = document.getElementById(btn.dataset.target);
+                if (input.type === "password") {
+                    input.type = "text";
+                    btn.textContent = "Hide";
+                } else {
+                    input.type = "password";
+                    btn.textContent = "Show";
+                }
+            });
+        });
+
+        // ---- Live match check (unchanged) ----
+        const newPassword = document.getElementById("id_new_password");
+        const confirmPassword = document.getElementById("id_confirm_password");
+        const errorBox = document.getElementById("password-error");
+
+        function validatePasswords() {
+            const newPass = newPassword.value;
+            const confirmPass = confirmPassword.value;
+
+            if (confirmPass.length === 0) {
+                errorBox.style.display = "none";
+                confirmPassword.style.borderColor = "";
+                return;
+            }
+            if (newPass !== confirmPass) {
+                errorBox.innerHTML = "❌ Passwords do not match";
+                errorBox.style.color = "#ef4444";
+                errorBox.style.display = "block";
+                confirmPassword.style.borderColor = "#ef4444";
+            } else {
+                errorBox.innerHTML = "✅ Passwords match";
+                errorBox.style.color = "#22c55e";
+                errorBox.style.display = "block";
+                confirmPassword.style.borderColor = "#22c55e";
+            }
+        }
+
+        if (newPassword && confirmPassword && errorBox) {
+            newPassword.addEventListener("input", validatePasswords);
+            confirmPassword.addEventListener("input", validatePasswords);
+        }
+
+        // ---- AJAX submit for change-password form (no reload) ----
+        const pwForm = document.getElementById("change-password-form");
+        if (pwForm) {
+            pwForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                // clear old errors
+                pwForm.querySelectorAll("[id^='err-']").forEach(function (el) {
+                    el.style.display = "none";
+                    el.textContent = "";
+                });
+
+                const formData = new FormData(pwForm);
+
+                fetch("{% url 'ajax_change_password' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: { "X-Requested-With": "XMLHttpRequest" },
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data.success) {
+                            pwForm.reset();
+                            errorBox.style.display = "none";
+                            if (window.LedGio && window.LedGio.toast) {
+                                window.LedGio.toast(data.message, 'success');
+                            } else {
+                                alert(data.message);
+                            }
+                        } else {
+                            Object.keys(data.errors).forEach(function (field) {
+                                const key = field === "__all__" ? "non_field" : field;
+                                const el = document.getElementById("err-" + key);
+                                if (el) {
+                                    el.textContent = data.errors[field];
+                                    el.style.display = "block";
+                                }
+                            });
+                        }
+                    })
+                    .catch(function () {
+                        alert("Something went wrong. Please try again.");
+                    });
+            });
+        }
+    });
+</script>
+
+{% endwith %}
 {% endblock %}

@@ -11,6 +11,14 @@
     --radius:28px;
     --shadow:0 10px 35px rgba(0,0,0,0.35);
     --transition:0.28s ease;
+
+    --hero-bg: linear-gradient(135deg, rgba(37,99,235,0.18), rgba(15,23,42,0.72));
+    --hero-bg-transactions: linear-gradient(135deg, rgba(56,189,248,0.16), rgba(15,23,42,0.72));
+    --hero-bg-analytics: linear-gradient(135deg, rgba(168,85,247,0.18), rgba(15,23,42,0.72));
+    --hero-border: 1px solid rgba(255,255,255,0.10);
+    --hero-text: #ffffff;
+    --hero-subtitle: #cbd5e1;
+    --hero-label: #38bdf8;
 }
 
 *{
@@ -588,13 +596,8 @@ select:focus{
     align-items:center;
     padding:42px;
     border-radius:34px;
-    background:
-    linear-gradient(
-        135deg,
-        rgba(56,189,248,0.18),
-        rgba(15,23,42,0.72)
-    );
-    border:1px solid rgba(255,255,255,0.10);
+    background:var(--hero-bg);
+    border:var(--hero-border);
     box-shadow:var(--shadow);
     backdrop-filter:blur(22px);
     margin-bottom:32px;
@@ -805,13 +808,8 @@ select:focus{
     align-items:center;
     padding:42px;
     border-radius:34px;
-    background:
-    linear-gradient(
-        135deg,
-        rgba(56,189,248,0.16),
-        rgba(15,23,42,0.72)
-    );
-    border:1px solid rgba(255,255,255,0.10);
+    background:var(--hero-bg-transactions);
+    border:var(--hero-border);
     box-shadow:var(--shadow);
     backdrop-filter:blur(22px);
     margin-bottom:32px;
@@ -929,13 +927,8 @@ select:focus{
     align-items:center;
     padding:42px;
     border-radius:34px;
-    background:
-    linear-gradient(
-        135deg,
-        rgba(168,85,247,0.18),
-        rgba(15,23,42,0.72)
-    );
-    border:1px solid rgba(255,255,255,0.10);
+    background:var(--hero-bg-analytics);
+    border:var(--hero-border);
     box-shadow:var(--shadow);
     backdrop-filter:blur(22px);
     margin-bottom:32px;
@@ -1139,13 +1132,8 @@ select:focus{
     align-items:center;
     padding:42px;
     border-radius:34px;
-    background:
-    linear-gradient(
-        135deg,
-        rgba(37,99,235,0.18),
-        rgba(15,23,42,0.72)
-    );
-    border:1px solid rgba(255,255,255,0.10);
+    background:var(--hero-bg);
+    border:var(--hero-border);
     box-shadow:var(--shadow);
     backdrop-filter:blur(22px);
     margin-bottom:32px;
@@ -2492,6 +2480,77 @@ textarea:focus{
     font-size:17px;
 }
 
+/* ==========================================================================
+   SAVINGS GOAL EXTENSIONS
+   ========================================================================== */
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-badge.achieved {
+    background: rgba(34, 197, 94, 0.16);
+    color: #4ade80;
+    border-color: rgba(34, 197, 94, 0.3);
+}
+[data-theme="light"] .status-badge.achieved {
+    background: rgba(22, 163, 74, 0.12);
+    color: #16a34a;
+}
+
+.status-badge.track {
+    background: rgba(56, 189, 248, 0.16);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.3);
+}
+[data-theme="light"] .status-badge.track {
+    background: rgba(2, 132, 199, 0.12);
+    color: #0284c7;
+}
+
+.status-badge.warning {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+[data-theme="light"] .status-badge.warning {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+}
+
+.status-badge.missed {
+    background: rgba(239, 68, 68, 0.16);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+[data-theme="light"] .status-badge.missed {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+}
+
+
+.stat-value.success{
+color:#16a34a;
+}
+
+.stat-value.danger{
+color:#ef4444;
+}
+
+.stat-value.small{
+font-size:18px;
+}
+
 @media(max-width:1050px){
     .add-transaction-layout{
         grid-template-columns:1fr;
@@ -2608,4 +2667,975 @@ textarea:focus{
     .table-container{
         overflow-x:auto;
     }
+}
+
+/* ==========================================================================
+   LEDGIO V2.0 EXTENSIONS
+   ========================================================================== */
+
+/* ── Light Theme Overrides ── */
+[data-theme="light"] {
+    --bg: #e2e8f0;
+    --card: rgba(255, 255, 255, 0.65);
+    --card-light: rgba(255, 255, 255, 0.85);
+    --text: #0f172a;
+    --muted: #475569;
+    --border-color: rgba(255, 255, 255, 0.6);
+
+    --hero-bg: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    --hero-bg-transactions: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    --hero-bg-analytics: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    --hero-border: 1px solid #cbd5e1;
+    --hero-text: #0f172a;
+    --hero-subtitle: #0f172a;
+    --hero-label: #1e40af;
+}
+
+[data-theme="light"] body {
+    background: radial-gradient(circle at top left, #e0e7ff, #f1f5f9 45%),
+                radial-gradient(circle at bottom right, #dbeafe, #f1f5f9 40%);
+    color: var(--text);
+}
+
+[data-theme="light"] .navbar {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 30px rgba(148, 163, 184, 0.15);
+    backdrop-filter: blur(18px);
+}
+
+[data-theme="light"] .nav-item {
+    color: var(--muted);
+}
+[data-theme="light"] .nav-item:hover,
+[data-theme="light"] .nav-item.active {
+    color: var(--text);
+    background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(56,189,248,0.1));
+    box-shadow: 0 10px 24px rgba(56,189,248,0.15);
+}
+
+[data-theme="light"] .dashboard-hero,
+[data-theme="light"] .balance-hero,
+[data-theme="light"] .transactions-hero,
+[data-theme="light"] .analytics-hero,
+[data-theme="light"] .edit-hero,
+[data-theme="light"] .profile-hero,
+[data-theme="light"] .admin-hero,
+[data-theme="light"] .goals-hero,
+[data-theme="light"] .goals-hero-card,
+[data-theme="light"] .addx-hero,
+html[data-theme="light"] .dashboard-hero,
+html[data-theme="light"] .balance-hero,
+html[data-theme="light"] .transactions-hero,
+html[data-theme="light"] .analytics-hero,
+html[data-theme="light"] .edit-hero,
+html[data-theme="light"] .profile-hero,
+html[data-theme="light"] .admin-hero,
+html[data-theme="light"] .goals-hero,
+html[data-theme="light"] .goals-hero-card,
+html[data-theme="light"] .addx-hero {
+    background: #ffffff !important;
+    background-image: none !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 10px 35px rgba(148, 163, 184, 0.25) !important;
+}
+
+[data-theme="light"] .dashboard-hero:hover,
+[data-theme="light"] .balance-hero:hover,
+[data-theme="light"] .transactions-hero:hover,
+[data-theme="light"] .analytics-hero:hover,
+[data-theme="light"] .edit-hero:hover,
+[data-theme="light"] .profile-hero:hover,
+[data-theme="light"] .admin-hero:hover,
+[data-theme="light"] .goals-hero:hover,
+[data-theme="light"] .goals-hero-card:hover,
+[data-theme="light"] .addx-hero:hover,
+html[data-theme="light"] .dashboard-hero:hover,
+html[data-theme="light"] .balance-hero:hover,
+html[data-theme="light"] .transactions-hero:hover,
+html[data-theme="light"] .analytics-hero:hover,
+html[data-theme="light"] .edit-hero:hover,
+html[data-theme="light"] .profile-hero:hover,
+html[data-theme="light"] .admin-hero:hover,
+html[data-theme="light"] .goals-hero:hover,
+html[data-theme="light"] .goals-hero-card:hover,
+html[data-theme="light"] .addx-hero:hover {
+    background: #ffffff !important;
+    background-image: none !important;
+    background-color: #ffffff !important;
+    border: 1px solid #94a3b8 !important;
+    box-shadow: 0 20px 45px rgba(148, 163, 184, 0.35) !important;
+}
+
+[data-theme="light"] .dashboard-hero *,
+[data-theme="light"] .balance-hero *,
+[data-theme="light"] .transactions-hero *,
+[data-theme="light"] .analytics-hero *,
+[data-theme="light"] .edit-hero *,
+[data-theme="light"] .profile-hero *,
+[data-theme="light"] .admin-hero *,
+[data-theme="light"] .goals-hero *,
+[data-theme="light"] .goals-hero-card *,
+[data-theme="light"] .addx-hero *,
+html[data-theme="light"] .dashboard-hero *,
+html[data-theme="light"] .balance-hero *,
+html[data-theme="light"] .transactions-hero *,
+html[data-theme="light"] .analytics-hero *,
+html[data-theme="light"] .edit-hero *,
+html[data-theme="light"] .profile-hero *,
+html[data-theme="light"] .admin-hero *,
+html[data-theme="light"] .goals-hero *,
+html[data-theme="light"] .goals-hero-card *,
+html[data-theme="light"] .addx-hero * {
+    opacity: 1 !important;
+}
+
+[data-theme="light"] .dashboard-hero h1,
+[data-theme="light"] .balance-hero h1,
+[data-theme="light"] .transactions-hero h1,
+[data-theme="light"] .analytics-hero h1,
+[data-theme="light"] .edit-hero h1,
+[data-theme="light"] .profile-hero h1,
+[data-theme="light"] .admin-hero h1,
+[data-theme="light"] .goals-hero h1,
+[data-theme="light"] .goals-hero-card h1,
+[data-theme="light"] .addx-hero h1,
+html[data-theme="light"] .dashboard-hero h1,
+html[data-theme="light"] .balance-hero h1,
+html[data-theme="light"] .transactions-hero h1,
+html[data-theme="light"] .analytics-hero h1,
+html[data-theme="light"] .edit-hero h1,
+html[data-theme="light"] .profile-hero h1,
+html[data-theme="light"] .admin-hero h1,
+html[data-theme="light"] .goals-hero h1,
+html[data-theme="light"] .goals-hero-card h1,
+html[data-theme="light"] .addx-hero h1 {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .dashboard-hero .balance-label,
+[data-theme="light"] .balance-hero .balance-label,
+[data-theme="light"] .transactions-hero .balance-label,
+[data-theme="light"] .analytics-hero .balance-label,
+[data-theme="light"] .edit-hero .balance-label,
+[data-theme="light"] .profile-hero .balance-label,
+[data-theme="light"] .admin-hero .balance-label,
+[data-theme="light"] .goals-hero-card .balance-label,
+[data-theme="light"] .addx-hero .balance-label,
+[data-theme="light"] .balance-label,
+html[data-theme="light"] .dashboard-hero .balance-label,
+html[data-theme="light"] .balance-hero .balance-label,
+html[data-theme="light"] .transactions-hero .balance-label,
+html[data-theme="light"] .analytics-hero .balance-label,
+html[data-theme="light"] .edit-hero .balance-label,
+html[data-theme="light"] .profile-hero .balance-label,
+html[data-theme="light"] .admin-hero .balance-label,
+html[data-theme="light"] .goals-hero-card .balance-label,
+html[data-theme="light"] .addx-hero .balance-label,
+html[data-theme="light"] .balance-label {
+    color: #1e40af !important;
+    font-weight: 800 !important;
+    opacity: 1 !important;
+}
+
+[data-theme="light"] .subtitle,
+[data-theme="light"] .goals-hero-subtitle,
+[data-theme="light"] .hero-subtitle,
+[data-theme="light"] .hero-meta,
+[data-theme="light"] .hero-date,
+[data-theme="light"] .dashboard-hero p,
+[data-theme="light"] .balance-hero p,
+[data-theme="light"] .transactions-hero p,
+[data-theme="light"] .analytics-hero p,
+[data-theme="light"] .edit-hero p,
+[data-theme="light"] .profile-hero p,
+[data-theme="light"] .admin-hero p,
+[data-theme="light"] .goals-hero p,
+[data-theme="light"] .goals-hero-card p,
+[data-theme="light"] .addx-hero p,
+html[data-theme="light"] .subtitle,
+html[data-theme="light"] .goals-hero-subtitle,
+html[data-theme="light"] .hero-subtitle,
+html[data-theme="light"] .hero-meta,
+html[data-theme="light"] .hero-date,
+html[data-theme="light"] .dashboard-hero p,
+html[data-theme="light"] .balance-hero p,
+html[data-theme="light"] .transactions-hero p,
+html[data-theme="light"] .analytics-hero p,
+html[data-theme="light"] .edit-hero p,
+html[data-theme="light"] .profile-hero p,
+html[data-theme="light"] .admin-hero p,
+html[data-theme="light"] .goals-hero p,
+html[data-theme="light"] .goals-hero-card p,
+html[data-theme="light"] .addx-hero p {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+}
+
+html[data-theme="light"] .profile-circle {
+    background: linear-gradient(135deg, #2563eb, #38bdf8) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(37,99,235,0.25) !important;
+}
+
+[data-theme="light"] input, [data-theme="light"] select, [data-theme="light"] textarea {
+    background: #f1f5f9;
+    border: 1px solid rgba(0,0,0,0.1);
+    color: var(--text);
+}
+
+[data-theme="light"] input:focus, [data-theme="light"] select:focus {
+    background: #ffffff;
+    border-color: var(--blue);
+}
+
+[data-theme="light"] th {
+    background: #f1f5f9;
+    color: var(--muted);
+}
+[data-theme="light"] td {
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+[data-theme="light"] tr:hover {
+    background: rgba(0,0,0,0.02);
+}
+
+[data-theme="light"] .dashboard-insight,
+[data-theme="light"] .balance-message {
+    background: #f1f5f9;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* ── Theme Toggle Button ── */
+.theme-toggle-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.theme-toggle-btn:hover {
+    transform: rotate(30deg) scale(1.1);
+    background: rgba(255,255,255,0.1);
+}
+[data-theme="light"] .theme-toggle-btn:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+/* ── Toasts ── */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.toast {
+    background: rgba(15,23,42,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 16px 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    color: white;
+    font-weight: 500;
+    min-width: 300px;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+}
+[data-theme="light"] .toast {
+    background: white;
+    color: #0f172a;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+.toast.toast-visible {
+    transform: translateX(0);
+    opacity: 1;
+}
+.toast.toast-exit {
+    transform: translateX(120%);
+    opacity: 0;
+}
+.toast-icon { font-size: 20px; }
+.toast-text { flex: 1; font-size: 14px; }
+.toast-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+}
+.toast-close:hover { color: white; }
+[data-theme="light"] .toast-close:hover { color: #0f172a; }
+
+.toast-success { border-left: 4px solid var(--green); }
+.toast-error { border-left: 4px solid var(--red); }
+.toast-warning { border-left: 4px solid var(--purple); }
+.toast-info { border-left: 4px solid var(--blue); }
+
+/* ── Financial Alerts ── */
+.alerts-section { margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px; }
+.alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border-radius: 16px;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+.alert-danger { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
+.alert-warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+.alert-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); }
+.alert-info { background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2); }
+.alert-icon { font-size: 24px; }
+.alert-content { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.alert-content strong { color: white; font-size: 15px; }
+[data-theme="light"] .alert-content strong { color: var(--text); }
+.alert-content span { color: var(--muted); font-size: 14px; }
+.alert-close {
+    background: none; border: none; font-size: 24px; color: var(--muted);
+    cursor: pointer; position: absolute; right: 16px; top: 12px;
+}
+
+/* ── Secondary Cards Grid ── */
+.secondary-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+.health-score-content { display: flex; justify-content: space-between; align-items: center; }
+.health-ring-wrap { position: relative; width: 60px; height: 60px; }
+.health-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 6; }
+[data-theme="light"] .ring-track { stroke: rgba(0,0,0,0.05); }
+.ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s ease-out; }
+.ring-fill-excellent { stroke: var(--green); }
+.ring-fill-good { stroke: var(--blue); }
+.ring-fill-needsattention { stroke: var(--purple); }
+.ring-fill-risk { stroke: var(--red); }
+.health-ring-label {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: bold; color: white;
+}
+[data-theme="light"] .health-ring-label { color: var(--text); }
+.health-badge {
+    display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;
+    margin-top: 8px;
+}
+.health-excellent { background: rgba(34,197,94,0.15); color: #4ade80; }
+.health-good { background: rgba(56,189,248,0.15); color: #38bdf8; }
+.health-needsattention { background: rgba(168,85,247,0.15); color: #c084fc; }
+.health-risk { background: rgba(239,68,68,0.15); color: #f87171; }
+[data-theme="light"] .health-excellent { color: #16a34a; }
+[data-theme="light"] .health-good { color: #0284c7; }
+[data-theme="light"] .health-needsattention { color: #9333ea; }
+[data-theme="light"] .health-risk { color: #dc2626; }
+.insight-mini-card p { font-size: 14px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+.insight-mini-card strong { color: white; }
+[data-theme="light"] .insight-mini-card strong { color: var(--text); }
+.upcoming-placeholder {
+    margin-top: 16px; padding: 12px; border-radius: 12px;
+    background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1);
+    color: var(--muted); font-size: 13px; text-align: center;
+}
+[data-theme="light"] .upcoming-placeholder { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.1); }
+
+/* ── Savings Goal Dashboard Card ── */
+.savings-goal-card {
+    background: linear-gradient(135deg, rgba(168,85,247,0.1) 0%, rgba(15,23,42,0.6) 100%);
+    border: 1px solid rgba(168,85,247,0.2);
+    border-radius: 24px; padding: 30px; margin-bottom: 40px; position: relative; overflow: hidden;
+}
+[data-theme="light"] .savings-goal-card {
+    background: linear-gradient(135deg, rgba(168,85,247,0.05) 0%, #ffffff 100%);
+    border-color: rgba(168,85,247,0.2);
+}
+.savings-goal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.savings-goal-amounts { display: flex; align-items: baseline; gap: 8px; margin-bottom: 16px; }
+.goal-saved { font-size: 36px; font-weight: 800; color: white; }
+[data-theme="light"] .goal-saved { color: var(--text); }
+.goal-separator { color: var(--muted); font-size: 16px; }
+.goal-target { font-size: 20px; font-weight: 600; color: var(--muted); }
+.goal-progress-track { height: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden; }
+[data-theme="light"] .goal-progress-track { background: rgba(0,0,0,0.05); }
+.goal-progress-fill { height: 100%; background: linear-gradient(90deg, #a855f7, #38bdf8); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 8px; }
+.goal-progress-labels { display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; color: var(--muted); font-weight: 600; }
+.goal-achieved-label { color: #4ade80; font-weight: 800; }
+[data-theme="light"] .goal-achieved-label { color: #16a34a; }
+
+.savings-goal-empty {
+    text-align: center; padding: 40px; background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.1); border-radius: 24px; margin-bottom: 40px;
+}
+[data-theme="light"] .savings-goal-empty { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.1); }
+.savings-goal-empty h3 { color: white; margin-bottom: 10px; font-size: 20px; }
+[data-theme="light"] .savings-goal-empty h3 { color: var(--text); }
+.savings-goal-empty p { color: var(--muted); }
+
+.goal-celebration {
+    text-align: center; padding: 30px; background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(15,23,42,0.8));
+    border: 1px solid rgba(34,197,94,0.3); border-radius: 24px; margin-bottom: 40px; animation: slideUp 0.6s ease;
+}
+[data-theme="light"] .goal-celebration { background: linear-gradient(135deg, rgba(34,197,94,0.05), #ffffff); }
+.celebration-icon { font-size: 48px; margin-bottom: 15px; animation: bounce 2s infinite; }
+.goal-celebration h2 { color: #4ade80; margin-bottom: 10px; font-size: 28px; }
+[data-theme="light"] .goal-celebration h2 { color: #16a34a; }
+.goal-celebration p { color: var(--muted); margin-bottom: 20px; font-size: 16px; }
+
+/* ── Enhanced Recent Transactions ── */
+.recent-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px; border-radius: 16px; transition: background 0.2s ease;
+    margin-bottom: 8px;
+}
+.recent-row:hover { background: rgba(255,255,255,0.03); }
+[data-theme="light"] .recent-row:hover { background: rgba(0,0,0,0.03); }
+.recent-row-left { display: flex; align-items: center; gap: 16px; }
+.recent-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.recent-icon-income { background: rgba(34,197,94,0.1); }
+.recent-icon-expense { background: rgba(239,68,68,0.1); }
+.recent-row-left strong { font-size: 15px; color: white; display: block; margin-bottom: 4px; }
+[data-theme="light"] .recent-row-left strong { color: var(--text); }
+.recent-row-left p { font-size: 13px; color: var(--muted); }
+.amount-income { color: #4ade80; font-weight: 700; font-size: 15px; }
+.amount-expense { color: #f87171; font-weight: 700; font-size: 15px; }
+[data-theme="light"] .amount-income { color: #16a34a; }
+[data-theme="light"] .amount-expense { color: #dc2626; }
+
+/* ── Profile Enhancements ── */
+.profile-avatar-img { object-fit: cover; }
+.profile-link { display: block; border-radius: 50%; outline: none; }
+.profile-link:focus { box-shadow: 0 0 0 3px rgba(56,189,248,0.5); }
+
+/* ── Animations ── */
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* ==========================================================================
+   END EXTENSIONS
+   ========================================================================== */
+
+/* ────────────────────────────────────────────────────────────────────────
+   LIGHT THEME HERO CONTAINER & HIGH CONTRAST SUBTITLE FIX
+──────────────────────────────────────────────────────────────────────── */
+[data-theme="light"] .dashboard-hero,
+[data-theme="light"] .balance-hero,
+[data-theme="light"] .transactions-hero,
+[data-theme="light"] .analytics-hero,
+[data-theme="light"] .edit-hero,
+[data-theme="light"] .profile-hero,
+[data-theme="light"] .admin-hero,
+[data-theme="light"] .goals-hero,
+[data-theme="light"] .goals-hero-card,
+[data-theme="light"] .addx-hero,
+[data-theme="light"] .add-page-header,
+[data-theme="light"] .add-transaction-left,
+[data-theme="light"] .transaction-filter-form,
+[data-theme="light"] .transaction-tools {
+    background: #ffffff !important;
+    background-image: none !important;
+    background-color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 10px 35px rgba(148, 163, 184, 0.22) !important;
+    backdrop-filter: none !important;
+}
+
+[data-theme="light"] .dashboard-hero *,
+[data-theme="light"] .balance-hero *,
+[data-theme="light"] .transactions-hero *,
+[data-theme="light"] .analytics-hero *,
+[data-theme="light"] .edit-hero *,
+[data-theme="light"] .profile-hero *,
+[data-theme="light"] .admin-hero *,
+[data-theme="light"] .goals-hero *,
+[data-theme="light"] .goals-hero-card *,
+[data-theme="light"] .addx-hero *,
+[data-theme="light"] .add-page-header *,
+[data-theme="light"] .add-transaction-left * {
+    opacity: 1 !important;
+}
+
+[data-theme="light"] .dashboard-hero h1,
+[data-theme="light"] .dashboard-hero h2,
+[data-theme="light"] .dashboard-hero p,
+[data-theme="light"] .dashboard-hero .subtitle,
+[data-theme="light"] .balance-hero h1,
+[data-theme="light"] .balance-hero h2,
+[data-theme="light"] .balance-hero p,
+[data-theme="light"] .balance-hero .balance-label,
+[data-theme="light"] .transactions-hero h1,
+[data-theme="light"] .transactions-hero p,
+[data-theme="light"] .transactions-hero .subtitle,
+[data-theme="light"] .analytics-hero h1,
+[data-theme="light"] .analytics-hero p,
+[data-theme="light"] .analytics-hero .subtitle,
+[data-theme="light"] .edit-hero h1,
+[data-theme="light"] .edit-hero p,
+[data-theme="light"] .profile-hero h1,
+[data-theme="light"] .profile-hero p,
+[data-theme="light"] .admin-hero h1,
+[data-theme="light"] .admin-hero p,
+[data-theme="light"] .goals-hero h1,
+[data-theme="light"] .goals-hero p,
+[data-theme="light"] .goals-hero-card h1,
+[data-theme="light"] .goals-hero-card p,
+[data-theme="light"] .add-page-header h1,
+[data-theme="light"] .add-page-header p,
+[data-theme="light"] .add-transaction-left h1,
+[data-theme="light"] .add-transaction-left p {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   LIGHT THEME COMPLETE CARDS, CHARTS, RECENT ACTIVITY & SAVINGS GOAL MODAL FIX
+──────────────────────────────────────────────────────────────────────── */
+
+/* 1. Dashboard & Top Metric Cards (Total Income, Total Expense, Current Balance, Savings Rate) */
+[data-theme="light"] .dashboard-card,
+[data-theme="light"] .card,
+[data-theme="light"] .analytics-stat-card,
+[data-theme="light"] .analytics-card,
+[data-theme="light"] .stat-card {
+    background: #ffffff !important;
+    background-image: none !important;
+    border: 1px solid rgba(203, 213, 225, 0.8) !important;
+    box-shadow: 0 10px 30px rgba(148, 163, 184, 0.18) !important;
+}
+
+[data-theme="light"] .dashboard-card h2,
+[data-theme="light"] .card h2,
+[data-theme="light"] .dashboard-card .card-value,
+[data-theme="light"] .dashboard-card h3,
+[data-theme="light"] .card h3,
+[data-theme="light"] .stat-card h2,
+[data-theme="light"] .stat-card h3,
+[data-theme="light"] .analytics-stat-card h2,
+[data-theme="light"] .analytics-stat-card h3 {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    opacity: 1 !important;
+}
+
+[data-theme="light"] .dashboard-card p,
+[data-theme="light"] .card p,
+[data-theme="light"] .card-sub,
+[data-theme="light"] .stat-card p,
+[data-theme="light"] .stat-card span {
+    color: #475569 !important;
+    font-weight: 600 !important;
+    opacity: 1 !important;
+}
+
+/* 2. Chart Containers (Financial Overview, Monthly Trend, Major Expenses, Other Expenses) */
+[data-theme="light"] .single-chart-container,
+[data-theme="light"] .chart-card,
+[data-theme="light"] .chart-container,
+[data-theme="light"] .balance-panel {
+    background: #ffffff !important;
+    background-image: none !important;
+    border: 1px solid rgba(203, 213, 225, 0.8) !important;
+    box-shadow: 0 10px 30px rgba(148, 163, 184, 0.18) !important;
+}
+
+[data-theme="light"] .single-chart-container h2,
+[data-theme="light"] .chart-header h2,
+[data-theme="light"] .chart-card h2,
+[data-theme="light"] .chart-container h2,
+[data-theme="light"] .balance-panel h2,
+[data-theme="light"] .balance-panel h3 {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    opacity: 1 !important;
+}
+
+[data-theme="light"] .single-chart-container p,
+[data-theme="light"] .chart-header p,
+[data-theme="light"] .chart-card p,
+[data-theme="light"] .chart-container p,
+[data-theme="light"] .balance-panel p,
+[data-theme="light"] .balance-panel span {
+    color: #475569 !important;
+    font-weight: 600 !important;
+    opacity: 1 !important;
+}
+
+/* 3. Dashboard Recent Activity Card */
+[data-theme="light"] .recent-activity-card,
+[data-theme="light"] .dashboard-recent-card,
+[data-theme="light"] .recent-card,
+[data-theme="light"] .dashboard-section-card {
+    background: #ffffff !important;
+    border: 1px solid rgba(203, 213, 225, 0.8) !important;
+    box-shadow: 0 10px 30px rgba(148, 163, 184, 0.18) !important;
+}
+
+[data-theme="light"] .recent-activity-card h2,
+[data-theme="light"] .recent-activity-card h3,
+[data-theme="light"] .recent-row strong,
+[data-theme="light"] .recent-item strong {
+    color: #0f172a !important;
+    opacity: 1 !important;
+}
+
+[data-theme="light"] .recent-row p,
+[data-theme="light"] .recent-row span,
+[data-theme="light"] .recent-item p,
+[data-theme="light"] .recent-item span {
+    color: #475569 !important;
+    opacity: 1 !important;
+}
+
+[data-theme="light"] .recent-row:hover {
+    background: #f8fafc !important;
+}
+
+[data-theme="light"] .btn-outline,
+[data-theme="light"] .view-all-btn {
+    background: #f1f5f9 !important;
+    color: #2563eb !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .btn-outline:hover,
+[data-theme="light"] .view-all-btn:hover {
+    background: #e2e8f0 !important;
+    color: #1d4ed8 !important;
+    border-color: #94a3b8 !important;
+}
+
+/* 4. Savings Goal Modal & Interactive Goal Card */
+[data-theme="light"] .goal-modal,
+[data-theme="light"] #goalModal {
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(12px) !important;
+}
+
+[data-theme="light"] .goal-modal .balance-panel,
+[data-theme="light"] #goalModal .balance-panel,
+[data-theme="light"] .modal-content {
+    background: #ffffff !important;
+    background-image: none !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25) !important;
+    color: #0f172a !important;
+    border-radius: 28px !important;
+}
+
+[data-theme="light"] .goal-modal h2,
+[data-theme="light"] #goalModal h2,
+[data-theme="light"] .modal-content h2 {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+}
+
+[data-theme="light"] .goal-modal label,
+[data-theme="light"] #goalModal label,
+[data-theme="light"] .modal-content label {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .goal-modal input,
+[data-theme="light"] #goalModal input,
+[data-theme="light"] .goal-modal select,
+[data-theme="light"] #goalModal select,
+[data-theme="light"] .modal-content input {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border: 1.5px solid #cbd5e1 !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="light"] .goal-modal input:focus,
+[data-theme="light"] #goalModal input:focus {
+    background: #ffffff !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15) !important;
+}
+
+[data-theme="light"] .goal-modal button[aria-label="Close"],
+[data-theme="light"] #goalModal button[aria-label="Close"],
+[data-theme="light"] .goal-modal button[onclick*="closeGoalModal"] {
+    color: #475569 !important;
+}
+
+/* Interactive Savings Goal Cards & Hover Effects */
+.savings-goal-card,
+.balance-panel,
+.dashboard-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
+}
+
+.savings-goal-card:hover,
+.dashboard-card:hover {
+    transform: translateY(-4px) scale(1.01) !important;
+}
+
+[data-theme="light"] .savings-goal-card {
+    background: linear-gradient(135deg, rgba(168,85,247,0.08) 0%, #ffffff 100%) !important;
+    border: 1px solid rgba(168,85,247,0.25) !important;
+    box-shadow: 0 12px 35px rgba(168,85,247,0.12) !important;
+}
+
+[data-theme="light"] .status-badge {
+    font-weight: 700 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   VIEW ALL TRANSACTIONS BUTTON & ADD TRANSACTION DESCRIPTION INPUT FIX
+──────────────────────────────────────────────────────────────────────── */
+
+/* 1. View All Transactions Button (#view-all-tx-btn) in Recent Activity */
+#view-all-tx-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 12px 26px !important;
+    border-radius: 16px !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(37,99,235,0.25)) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56,189,248,0.35) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease !important;
+}
+
+#view-all-tx-btn:hover {
+    background: linear-gradient(135deg, rgba(56,189,248,0.35), rgba(37,99,235,0.4)) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 12px 25px rgba(56,189,248,0.3) !important;
+}
+
+[data-theme="light"] #view-all-tx-btn {
+    background: linear-gradient(135deg, #2563eb, #38bdf8) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(37,99,235,0.2) !important;
+    box-shadow: 0 8px 20px rgba(37,99,235,0.3) !important;
+}
+
+[data-theme="light"] #view-all-tx-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8, #0284c7) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 12px 25px rgba(37,99,235,0.4) !important;
+}
+
+[data-theme="light"] .recent-panel {
+    background: #ffffff !important;
+    background-image: none !important;
+    background-color: #ffffff !important;
+    border: 1px solid rgba(203, 213, 225, 0.8) !important;
+    box-shadow: 0 10px 30px rgba(148, 163, 184, 0.18) !important;
+}
+
+/* 2. Add Transaction Description Input & Form Text Contrast in Light Theme */
+[data-theme="light"] .addx-row input,
+[data-theme="light"] .addx-date-wrap input,
+[data-theme="light"] .addx-amount-box input,
+[data-theme="light"] input[name="description"],
+[data-theme="light"] input#id_description {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border: 1.5px solid #cbd5e1 !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="light"] .addx-row input:focus,
+[data-theme="light"] .addx-date-wrap input:focus,
+[data-theme="light"] .addx-amount-box input:focus,
+[data-theme="light"] input[name="description"]:focus,
+[data-theme="light"] input#id_description:focus {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15) !important;
+}
+
+[data-theme="light"] .addx-row label {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+}
+
+[data-theme="light"] .addx-card,
+[data-theme="light"] .addx-main-card {
+    background: #ffffff !important;
+    background-image: none !important;
+    background-color: #ffffff !important;
+    border: 1px solid rgba(203, 213, 225, 0.8) !important;
+    box-shadow: 0 10px 30px rgba(148, 163, 184, 0.18) !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   UNIFIED PREMIUM BUTTON SYSTEM ("VIEW ALL TRANSACTIONS" STYLE)
+   Applies to all site buttons except top navigation bar items (.nav-item).
+──────────────────────────────────────────────────────────────────────── */
+
+.btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 12px 24px !important;
+    border-radius: 16px !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    border: none !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease !important;
+}
+
+.btn:hover {
+    transform: translateY(-2px) scale(1.02) !important;
+}
+
+/* 1. Primary Buttons (.btn-primary, .add-toggle-btn, button[type="submit"]) */
+.btn-primary,
+.add-toggle-btn,
+button[type="submit"].btn {
+    background: linear-gradient(135deg, rgba(56,189,248,0.22), rgba(37,99,235,0.28)) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56,189,248,0.38) !important;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25) !important;
+}
+
+.btn-primary:hover,
+.add-toggle-btn:hover,
+button[type="submit"].btn:hover {
+    background: linear-gradient(135deg, #2563eb, #38bdf8) !important;
+    color: #ffffff !important;
+    border-color: rgba(56,189,248,0.6) !important;
+    box-shadow: 0 12px 28px rgba(37,99,235,0.4) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+}
+
+/* Light Theme Primary Buttons */
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .add-toggle-btn,
+[data-theme="light"] button[type="submit"].btn {
+    background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(37, 99, 235, 0.25) !important;
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.3) !important;
+}
+
+[data-theme="light"] .btn-primary:hover,
+[data-theme="light"] .add-toggle-btn:hover,
+[data-theme="light"] button[type="submit"].btn:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.42) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+}
+
+/* 2. Edit / Success Buttons (.btn-edit) */
+.btn-edit {
+    background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(22,163,74,0.25)) !important;
+    color: #4ade80 !important;
+    border: 1px solid rgba(34,197,94,0.35) !important;
+    box-shadow: 0 6px 18px rgba(34,197,94,0.2) !important;
+}
+
+.btn-edit:hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 10px 24px rgba(34,197,94,0.35) !important;
+}
+
+[data-theme="light"] .btn-edit {
+    background: #f0fdf4 !important;
+    color: #16a34a !important;
+    border: 1.5px solid #86efac !important;
+    box-shadow: 0 6px 18px rgba(22, 163, 74, 0.15) !important;
+}
+
+[data-theme="light"] .btn-edit:hover {
+    background: #16a34a !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 10px 24px rgba(22, 163, 74, 0.3) !important;
+}
+
+/* 3. Danger / Delete Buttons (.btn-danger, .btn-delete) */
+.btn-danger,
+.btn-delete {
+    background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.25)) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239,68,68,0.35) !important;
+    box-shadow: 0 6px 18px rgba(239,68,68,0.2) !important;
+}
+
+.btn-danger:hover,
+.btn-delete:hover {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 10px 24px rgba(239,68,68,0.35) !important;
+}
+
+[data-theme="light"] .btn-danger,
+[data-theme="light"] .btn-delete {
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+    border: 1.5px solid #fca5a5 !important;
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.15) !important;
+}
+
+[data-theme="light"] .btn-danger:hover,
+[data-theme="light"] .btn-delete:hover {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 10px 24px rgba(220, 38, 38, 0.3) !important;
+}
+
+/* 4. Secondary / Outline Buttons (.btn-outline) */
+.btn-outline {
+    background: linear-gradient(135deg, rgba(56,189,248,0.12), rgba(37,99,235,0.15)) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56,189,248,0.28) !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18) !important;
+}
+
+.btn-outline:hover {
+    background: linear-gradient(135deg, rgba(56,189,248,0.28), rgba(37,99,235,0.32)) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) scale(1.02) !important;
+}
+
+[data-theme="light"] .btn-outline {
+    background: #f1f5f9 !important;
+    color: #2563eb !important;
+    border: 1.5px solid #cbd5e1 !important;
+    box-shadow: 0 6px 18px rgba(148, 163, 184, 0.15) !important;
+}
+
+[data-theme="light"] .btn-outline:hover {
+    background: #e2e8f0 !important;
+    color: #1d4ed8 !important;
+    border-color: #94a3b8 !important;
+    transform: translateY(-2px) scale(1.02) !important;
 }

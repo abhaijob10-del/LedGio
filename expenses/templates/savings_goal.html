@@ -2,51 +2,335 @@
 {% load static %}
 
 {% block content %}
-
 <div class="page-container">
 
-    <div class="form-card" style="max-width: 600px; margin: 0 auto;">
-        
-        <h2>🎯 Monthly Savings Goal</h2>
-        <p class="subtitle" style="margin-bottom: 25px;">
-            Set your target for {{ current_month }}. This will help you track your progress on the dashboard.
-        </p>
-
-        {% if form.errors %}
-        <div class="auth-error" style="margin-bottom: 20px;">
-            Please correct the errors below.
-        </div>
-        {% endif %}
-
-        <form method="POST" autocomplete="off">
-            {% csrf_token %}
-
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; color: var(--muted); margin-bottom: 8px;">Target Amount ({{ currency_symbol }})</label>
-                <input type="number" 
-                       name="target_amount" 
-                       value="{{ form.target_amount.value|default:'' }}"
-                       placeholder="e.g. 10000"
-                       step="0.01"
-                       min="1"
-                       required
-                       style="width: 100%; padding: 14px 20px; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: white; font-size: 16px; outline: none;">
-                {% if form.target_amount.errors %}
-                    <p class="live-msg error-msg" style="margin-top: 5px;">{{ form.target_amount.errors.0 }}</p>
+    <!-- ════════════════════════════════════════════════════════════════
+         SAVINGS GOAL HERO HEADER
+    ═══════════════════════════════════════════════════════════════════ -->
+    <div class="balance-hero" role="banner">
+        <div>
+            <p class="balance-label">Savings Target &bull; {{ current_month }}</p>
+            <h1>
+                {% if existing_goal %}
+                    {{ currency_symbol }}{{ existing_goal.target_amount }}
+                {% else %}
+                    No Goal Created
                 {% endif %}
+            </h1>
+            <p class="subtitle">
+                {% if existing_goal %}
+                    {{ existing_goal.goal_name|default:"Monthly Savings Target" }}
+                {% else %}
+                    Set a target for {{ current_month }} to stay on track and build your savings.
+                {% endif %}
+            </p>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            {% if existing_goal %}
+                {% if goal_status == "Achieved" %}
+                    <span class="status-badge achieved">🏆 Achieved</span>
+                {% elif goal_status == "On Track" %}
+                    <span class="status-badge track">🟢 On Track</span>
+                {% elif goal_status == "Needs Attention" %}
+                    <span class="status-badge warning">🟠 Needs Attention</span>
+                {% elif goal_status == "Missed" %}
+                    <span class="status-badge missed">🔴 Missed</span>
+                {% else %}
+                    <span class="status-badge">Active</span>
+                {% endif %}
+
+                <button type="button" class="btn btn-primary" onclick="openGoalModal()">✏️ Edit Goal</button>
+                <button type="button" class="btn btn-outline" style="border-color:rgba(239,68,68,0.4); color:#ef4444;" onclick="confirmDeleteGoal()">🗑️ Delete</button>
+            {% else %}
+                <button type="button" class="btn btn-primary" onclick="openGoalModal()">+ Create Goal</button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if existing_goal %}
+    <!-- ════════════════════════════════════════════════════════════════
+         GOAL PROGRESS & COMPLETION OVERVIEW
+    ═══════════════════════════════════════════════════════════════════ -->
+    <div class="balance-split-grid">
+
+        <!-- Progress Details Panel -->
+        <div class="balance-panel">
+            <h2>Progress Overview</h2>
+
+            <div class="split-row">
+                <div class="split-info">
+                    <span>Saved So Far</span>
+                    <strong>{{ currency_symbol }}{{ savings_progress.saved }}</strong>
+                </div>
+                <div class="split-track">
+                    <div class="split-fill income-fill" style="width: {{ savings_progress.percentage|default:0 }}%;"></div>
+                </div>
             </div>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%;">
-                {% if existing_goal %}Update Goal{% else %}Set Goal{% endif %}
-            </button>
-        </form>
+            <div class="split-row" style="margin-top:20px;">
+                <div class="split-info">
+                    <span>Remaining Needed</span>
+                    <strong>{{ currency_symbol }}{{ savings_progress.remaining }}</strong>
+                </div>
+                <div class="split-track">
+                    <div class="split-fill expense-fill" style="width: {% if savings_progress.percentage >= 100 %}0{% else %}{{ 100|add:savings_progress.percentage|default:0 }}{% endif %}%;"></div>
+                </div>
+            </div>
 
-        <div style="margin-top: 30px; text-align: center;">
-            <a href="{% url 'balance' %}" class="btn" style="color: var(--muted);">Cancel & Go Back</a>
+            <div class="split-row" style="margin-top:20px;">
+                <div class="split-info">
+                    <span>Target Deadline</span>
+                    <strong>{{ existing_goal.deadline|default:"End of Month" }}</strong>
+                </div>
+            </div>
+
+            <!-- Motivational Message Box -->
+            <div class="balance-message" style="margin-top:20px;">
+                <h3>{{ goal_status }}</h3>
+                <p>{{ savings_progress.message|default:"Keep tracking your expenses to hit your monthly savings goal!" }}</p>
+            </div>
+        </div>
+
+        <!-- Completion Doughnut Ring Panel -->
+        <div class="balance-panel" style="text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+            <h2>Goal Completion</h2>
+
+            <div style="position:relative; width:190px; height:190px; margin:20px auto;">
+                <canvas id="goalProgressChart"></canvas>
+                <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; pointer-events:none;">
+                    <span style="font-size:36px; font-weight:900; color:var(--text); line-height:1; display:block;">
+                        {{ savings_progress.percentage|default:0|floatformat:0 }}%
+                    </span>
+                    <span class="subtitle" style="font-size:12px; margin-top:4px; display:block;">Completed</span>
+                </div>
+            </div>
+
+            <p class="subtitle center-text" style="margin-top:12px;">
+                {% if days_left != None %}
+                    {% if days_left > 0 %}
+                        ⌛ <strong>{{ days_left }}</strong> Days Remaining
+                    {% elif days_left == 0 %}
+                        ⌛ <strong>Due Today!</strong>
+                    {% else %}
+                        ⚠️ <strong>Goal Deadline Passed</strong>
+                    {% endif %}
+                {% else %}
+                    📅 Target: <strong>End of Month</strong>
+                {% endif %}
+            </p>
         </div>
 
     </div>
 
+    <!-- ════════════════════════════════════════════════════════════════
+         STAT CARDS GRID
+    ═══════════════════════════════════════════════════════════════════ -->
+    <div class="cards-grid" role="region" aria-label="Savings Summary" style="margin-bottom: 32px;">
+
+        <div class="dashboard-card" role="article">
+            <div class="card-marker balance-marker"></div>
+            <div class="card-icon">🎯</div>
+            <h3>Target Goal</h3>
+            <h2>{{ currency_symbol }}{{ existing_goal.target_amount }}</h2>
+            <p class="card-sub">{{ existing_goal.goal_name|default:"Monthly Target" }}</p>
+        </div>
+
+        <div class="dashboard-card income-card" role="article">
+            <div class="card-marker income-marker"></div>
+            <div class="card-icon">💵</div>
+            <h3>Saved Amount</h3>
+            <h2 style="color:var(--green);">{{ currency_symbol }}{{ savings_progress.saved }}</h2>
+            <p class="card-sub">Net balance this month</p>
+        </div>
+
+        <div class="dashboard-card expense-card" role="article">
+            <div class="card-marker expense-marker"></div>
+            <div class="card-icon">⏳</div>
+            <h3>Remaining</h3>
+            <h2 style="color:var(--blue);">{{ currency_symbol }}{{ savings_progress.remaining }}</h2>
+            <p class="card-sub">Needed to reach target</p>
+        </div>
+
+        <div class="dashboard-card" role="article">
+            <div class="card-marker balance-marker"></div>
+            <div class="card-icon">📅</div>
+            <h3>Target Deadline</h3>
+            <h2>
+                {% if days_left != None %}
+                    {% if days_left > 0 %}{{ days_left }} Days{% elif days_left == 0 %}Today{% else %}Ended{% endif %}
+                {% else %}
+                    Month End
+                {% endif %}
+            </h2>
+            <p class="card-sub">{{ existing_goal.deadline|default:"Not Set" }}</p>
+        </div>
+
+    </div>
+
+    {% else %}
+    <!-- ════════════════════════════════════════════════════════════════
+         EMPTY STATE (NO GOAL CREATED YET)
+    ═══════════════════════════════════════════════════════════════════ -->
+    <div class="single-chart-container" style="text-align:center; padding:60px 30px; margin-bottom:32px;">
+        <div class="card-icon" style="font-size:54px; margin-bottom:16px;">🎯</div>
+        <h2>No Savings Goal Set for {{ current_month }}</h2>
+        <p class="subtitle" style="max-width:520px; margin:12px auto 24px auto;">
+            Setting a savings target helps you stay disciplined, track your progress, and build financial freedom month after month.
+        </p>
+        <button type="button" class="btn btn-primary" onclick="openGoalModal()">
+            + Set Savings Goal Now
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Back to Balance Link -->
+    <div style="text-align:center; margin-top:30px;">
+        <a href="{% url 'balance' %}" class="auth-link">← Return to Balance Overview</a>
+    </div>
+
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════
+     GOAL MODAL DIALOG
+═══════════════════════════════════════════════════════════════════ -->
+<div id="goalModal" class="goal-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(5,8,22,0.75); backdrop-filter:blur(10px); justify-content:center; align-items:center; z-index:9999; padding:20px;">
+    <div class="balance-panel" style="width:100%; max-width:500px; padding:32px; position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:14px;">
+            <h2 style="margin:0; font-size:22px;">🎯 {% if existing_goal %}Update Savings Goal{% else %}Create Savings Goal{% endif %}</h2>
+            <button type="button" onclick="closeGoalModal()" style="background:none; border:none; color:var(--muted); font-size:28px; cursor:pointer; line-height:1;">&times;</button>
+        </div>
+
+        <form method="POST" action="{% url 'savings_goal' %}">
+            {% csrf_token %}
+
+            <div style="margin-bottom:18px;">
+                <label style="display:block; margin-bottom:8px; font-weight:700; color:var(--text);">Goal Name (Optional)</label>
+                {{ form.goal_name }}
+                {% if form.goal_name.errors %}
+                    <div class="field-error" style="color:var(--red); font-size:12px; margin-top:4px;">{{ form.goal_name.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom:18px;">
+                <label style="display:block; margin-bottom:8px; font-weight:700; color:var(--text);">Target Amount ({{ currency_symbol }})</label>
+                {{ form.target_amount }}
+                {% if form.target_amount.errors %}
+                    <div class="field-error" style="color:var(--red); font-size:12px; margin-top:4px;">{{ form.target_amount.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom:24px;">
+                <label style="display:block; margin-bottom:8px; font-weight:700; color:var(--text);">Target Deadline (Optional)</label>
+                {{ form.deadline }}
+                {% if form.deadline.errors %}
+                    <div class="field-error" style="color:var(--red); font-size:12px; margin-top:4px;">{{ form.deadline.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div style="display:flex; gap:12px; justify-content:flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeGoalModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    {% if existing_goal %}Save Changes{% else %}Set Goal{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hidden Delete Goal Form -->
+{% if existing_goal %}
+<form id="deleteGoalForm" method="POST" action="{% url 'goal_delete' %}" style="display:none;">
+    {% csrf_token %}
+</form>
+{% endif %}
+
+<!-- ════════════════════════════════════════════════════════════════
+     SCRIPTS & THEME OBSERVER
+═══════════════════════════════════════════════════════════════════ -->
+<script>
+function openGoalModal(){
+    const modal = document.getElementById("goalModal");
+    if(modal){
+        modal.style.display = "flex";
+    }
+}
+
+function closeGoalModal(){
+    const modal = document.getElementById("goalModal");
+    if(modal){
+        modal.style.display = "none";
+    }
+}
+
+function confirmDeleteGoal(){
+    if(confirm("Are you sure you want to delete your current savings goal?")){
+        document.getElementById("deleteGoalForm").submit();
+    }
+}
+
+window.onclick = function(event){
+    const modal = document.getElementById("goalModal");
+    if(event.target === modal){
+        closeGoalModal();
+    }
+};
+
+document.addEventListener("DOMContentLoaded", function(){
+    const goalCanvas = document.getElementById("goalProgressChart");
+    if(!goalCanvas) return;
+
+    const progressVal = {{ savings_progress.percentage|default:0 }};
+    const savedVal = Math.min(progressVal, 100);
+    const remainVal = Math.max(100 - savedVal, 0);
+
+    function getThemeColors(){
+        const isLight = document.documentElement.getAttribute("data-theme") === "light";
+        return {
+            savedColor: isLight ? "#0284c7" : "#38bdf8",
+            remainColor: isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.08)"
+        };
+    }
+
+    const initialColors = getThemeColors();
+
+    const chartInstance = new Chart(goalCanvas, {
+        type: "doughnut",
+        data: {
+            labels: ["Saved", "Remaining"],
+            datasets: [{
+                data: [savedVal, remainVal],
+                backgroundColor: [initialColors.savedColor, initialColors.remainColor],
+                borderWidth: 0,
+                cutout: "78%"
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            }
+        }
+    });
+
+    const observer = new MutationObserver(function(mutations){
+        mutations.forEach(function(mutation){
+            if(mutation.attributeName === "data-theme"){
+                const colors = getThemeColors();
+                chartInstance.data.datasets[0].backgroundColor[0] = colors.savedColor;
+                chartInstance.data.datasets[0].backgroundColor[1] = colors.remainColor;
+                chartInstance.update();
+            }
+        });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+});
+</script>
 {% endblock %}

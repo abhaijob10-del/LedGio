@@ -533,7 +533,7 @@
 
                 <div class="addx-amount-box">
 
-                    <span>₹</span>
+                    <span>{{ currency_symbol }}</span>
 
                     <input type="number"
                            step="0.01"
@@ -610,7 +610,7 @@
 
                 <p>Amount</p>
 
-                <h2>₹<span id="amountPreview">0</span></h2>
+                <h2>{{ currency_symbol }}<span id="amountPreview">0</span></h2>
 
             </div>
 
@@ -773,9 +773,11 @@ function quickFill(description, type){
     document.getElementById("amountInput").focus();
 }
 
+let _categoryFetchTimer = null;
+
 function detectCategory(){
 
-    const description = document.getElementById("descriptionInput").value.toLowerCase();
+    const description = document.getElementById("descriptionInput").value.trim();
     const type = document.getElementById("transactionType").value;
     const box = document.getElementById("categoryBox");
 
@@ -790,28 +792,6 @@ function detectCategory(){
         return;
     }
 
-    let category = "Miscellaneous → Others";
-
-    const rules = [
-        { category: "Food → Eating Out", words: ["kfc", "pizza", "restaurant", "burger", "dominos", "cafe"] },
-        { category: "Food → Food Delivery", words: ["swiggy", "zomato"] },
-        { category: "Transportation → Ride Hailing", words: ["uber", "ola", "rapido", "taxi", "cab", "auto"] },
-        { category: "Transportation → Fuel", words: ["petrol", "diesel", "fuel"] },
-        { category: "Shopping → Online Shopping", words: ["amazon", "flipkart", "mall", "lulu"] },
-        { category: "Communication → Mobile", words: ["mobile recharge", "phone bill", "airtel", "jio", "vi", "bsnl"] },
-        { category: "Subscriptions → Entertainment Subscription", words: ["netflix", "spotify", "prime"] },
-        { category: "Mandatory Expenses → Utilities", words: ["electricity", "water bill", "gas bill", "current bill"] },
-        { category: "Healthcare → Medical", words: ["hospital", "clinic", "doctor", "medicine", "pharmacy"] },
-        { category: "Education → Study Materials", words: ["books", "stationery"] }
-    ];
-
-    for(const rule of rules){
-        if(rule.words.some(word => description.includes(word))){
-            category = rule.category;
-            break;
-        }
-    }
-
     if(description.length === 0){
 
         box.innerHTML = `
@@ -820,14 +800,42 @@ function detectCategory(){
             <p>LedGio will suggest the category automatically.</p>
         `;
 
-    }else{
-
-        box.innerHTML = `
-            <span>Suggested Category</span>
-            <h3>${category}</h3>
-            <p>This category will be applied automatically after saving.</p>
-        `;
+        return;
     }
+
+    // Show spinner while we wait
+    box.innerHTML = `
+        <span>Suggested Category</span>
+        <h3 style="opacity:0.5">Detecting…</h3>
+        <p>Analysing your description.</p>
+    `;
+
+    // Debounce: wait 300 ms after the user stops typing before firing the request
+    clearTimeout(_categoryFetchTimer);
+    _categoryFetchTimer = setTimeout(function(){
+
+        fetch("/api/categorize/?q=" + encodeURIComponent(description))
+            .then(function(res){ return res.json(); })
+            .then(function(data){
+
+                const label = data.category + " → " + data.subcategory;
+
+                box.innerHTML = `
+                    <span>Suggested Category</span>
+                    <h3>${label}</h3>
+                    <p>This category will be applied automatically after saving.</p>
+                `;
+            })
+            .catch(function(){
+                // Fallback if the request fails
+                box.innerHTML = `
+                    <span>Suggested Category</span>
+                    <h3>Miscellaneous → Others</h3>
+                    <p>This category will be applied automatically after saving.</p>
+                `;
+            });
+
+    }, 300);
 }
 
 window.addEventListener("resize", configureAmountInput);

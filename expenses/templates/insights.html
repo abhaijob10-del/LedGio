@@ -3,8 +3,6 @@
 {% block content %}
 {% load static %}
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <div class="page-container">
 
     <div class="analytics-hero">
@@ -133,7 +131,12 @@
 
 </div>
 
+<!-- Chart.js is loaded globally via base.html -->
 <script>
+
+const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+const labelColor = isLight ? '#334155' : '#ffffff';
+const gridColor  = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
 
 const rawCategories = [
     {% for category, amount in insights.category_totals.items %}
@@ -204,13 +207,13 @@ new Chart(majorCtx, {
                     }
                 },
                 grid: {
-                    color: "rgba(255,255,255,0.08)"
+                    color: gridColor
                 }
             },
 
             y: {
                 ticks: {
-                    color: "#ffffff",
+                    color: labelColor,
                     font: {
                         size: 13
                     }
@@ -253,7 +256,7 @@ if(minorCategories.length > 0){
                     position: "bottom",
 
                     labels: {
-                        color: "#ffffff",
+                        color: labelColor,
                         padding: 18,
                         font: {
                             size: 13
@@ -280,5 +283,4 @@ if(minorCategories.length > 0){
 }
 
 </script>
-
 {% endblock %}
