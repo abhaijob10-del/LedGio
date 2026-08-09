@@ -16,8 +16,9 @@ urlpatterns = [
     path("balance/", views.balance_view, name="balance"),
     path("insights/", views.insights, name="insights"),
 
-    # Savings Goal (Feature 5)
+    # Savings Goal
     path("savings-goal/", views.savings_goal_view, name="savings_goal"),
+    path("goal-delete/", views.delete_goal_view, name="goal_delete"),
 
     # Auth helpers
     path("logout/", views.logout_view, name="logout"),
@@ -46,4 +47,9 @@ urlpatterns = [
     # Admin — Staff Management
     path("staff-management/", views.staff_management_view, name="staff_management"),
     path("toggle-staff/<int:id>/", views.toggle_staff_status, name="toggle_staff"),
+
+    path("ajax/change-password/", views.ajax_change_password, name="ajax_change_password",),
+
+    # Category suggestion API (used by JS live preview in add/edit forms)
+    path("api/categorize/", views.api_categorize, name="api_categorize"),
 ]

@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from expenses.views import register_view
+from django.conf import settings
+from django.conf.urls.static import static
+from expenses.views import register_view, LedGioPasswordResetView, test_email_view
 
 urlpatterns = [
     # Django admin
@@ -19,10 +21,10 @@ urlpatterns = [
     # Registration
     path("register/", register_view, name="register"),
 
-    # ---------- Password Reset (Feature 4) ----------
+    # ---------- Password Reset ----------
     path(
         "password-reset/",
-        auth_views.PasswordResetView.as_view(
+        LedGioPasswordResetView.as_view(
             template_name="password_reset.html",
             email_template_name="emails/password_reset_email.txt",
             html_email_template_name="emails/password_reset_email.html",
@@ -56,3 +58,12 @@ urlpatterns = [
     # Provides: /accounts/google/login/, /accounts/confirm-email/, etc.
     path("accounts/", include("allauth.urls")),
 ]
+
+# Serve user-uploaded media files in development
+# Also expose staff-only email diagnostic route in DEBUG mode only
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Staff-only SMTP diagnostic — NEVER exposed in production
+    urlpatterns += [
+        path("test-email/", test_email_view, name="test_email"),
+    ]

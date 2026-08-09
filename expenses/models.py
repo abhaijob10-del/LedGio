@@ -84,6 +84,7 @@ class Transaction(models.Model):
         indexes = [
             models.Index(fields=["user", "trans_type"]),
             models.Index(fields=["user", "transaction_date"]),
+            models.Index(fields=["user", "category"]),
         ]
 
     def __str__(self):
@@ -164,6 +165,8 @@ class UserProfile(models.Model):
         default="INR",
     )
 
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+
     # When True the user has completed email verification
     email_verified = models.BooleanField(default=False)
 
@@ -204,8 +207,12 @@ class SavingsGoal(models.Model):
         related_name="savings_goals",
     )
 
+    goal_name = models.CharField(max_length=150, blank=True, default="")
+
     # Stored as the first day of the target month (e.g. 2026-07-01)
     month = models.DateField(db_index=True)
+
+    deadline = models.DateField(null=True, blank=True)
 
     target_amount = models.DecimalField(
         max_digits=12,
@@ -229,3 +236,47 @@ class SavingsGoal(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — {self.month.strftime('%B %Y')} goal"
+
+
+# ---------------------------------------------------------------------------
+# UnknownTransaction — Logs transaction descriptions that fell through
+# categorization, enabling future model improvement.
+# ---------------------------------------------------------------------------
+
+class UnknownTransaction(models.Model):
+    """Records raw transaction descriptions that could not be auto-categorized.
+
+    Used to identify blind spots in the categorization engine and collect
+    training data for future rule / ML improvements.
+    """
+
+    original_description = models.CharField(
+        max_length=500,
+        help_text="Raw transaction string as entered by the user or imported.",
+    )
+
+    normalized_description = models.CharField(
+        max_length=500,
+        db_index=True,
+        help_text="TextNormalizer output — used for deduplication lookups.",
+    )
+
+    first_seen = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    frequency = models.PositiveIntegerField(
+        default=1,
+        help_text="How many times this normalized description was logged.",
+    )
+
+    class Meta:
+        ordering = ["-frequency", "-last_seen"]
+        verbose_name = "Unknown Transaction"
+        verbose_name_plural = "Unknown Transactions"
+        indexes = [
+            models.Index(fields=["normalized_description"]),
+            models.Index(fields=["frequency"]),
+        ]
+
+    def __str__(self):
+        return f"{self.original_description!r} (seen {self.frequency}×)"

@@ -1,0 +1,33 @@
+# LedGio Production Dependencies
+# Generated: 2026-08-08
+# Install with: pip install -r requirements.txt
+
+# ── Django core ────────────────────────────────────────────────
+Django==6.0.5
+asgiref==3.11.1
+sqlparse==0.5.5
+
+# ── Authentication & OAuth ─────────────────────────────────────
+django-allauth==65.18.0
+
+# ── Database driver (PostgreSQL) ───────────────────────────────
+psycopg==3.3.4
+psycopg-binary==3.3.4
+
+# ── Environment variable management ───────────────────────────
+python-dotenv==1.2.2
+
+# ── Image processing (profile pictures) ───────────────────────
+pillow==12.3.0
+
+# ── Fuzzy string matching (expense categorisation engine) ─────
+RapidFuzz==3.14.5
+
+# ── Production WSGI server ─────────────────────────────────────
+gunicorn>=23.0.0
+
+# ── Production static file serving ────────────────────────────
+whitenoise>=6.9.0
+
+# ── Timezone data ─────────────────────────────────────────────
+tzdata==2026.2

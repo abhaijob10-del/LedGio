@@ -6,6 +6,8 @@ support requests, staff management, savings goals, and support detail.
 """
 
 import logging
+import os
+import smtplib
 from datetime import timedelta, date
 
 from django.contrib import messages
@@ -13,15 +15,19 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.views import PasswordResetView
+from django.core.cache import cache
+from django.core.mail import send_mail, BadHeaderError
+from django.conf import settings as django_settings
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.contrib.auth import update_session_auth_hash
 
 from .decorators import admin_required
-from .forms import RegistrationForm, SupportRequestForm, TransactionForm, SavingsGoalForm
+from .forms import RegistrationForm, SupportRequestForm, TransactionForm, SavingsGoalForm, ProfileUpdateForm, PasswordChangeForm
 from .models import SupportRequest, Transaction, UserProfile, SavingsGoal
 from .country_data import get_currency_for_country
 from .expense_engine import (
@@ -33,9 +39,149 @@ from .expense_engine import (
     update_transaction,
     get_monthly_analytics,
     get_savings_progress,
+    get_financial_alerts,
+    categorize_with_explanation,
 )
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# API — Category Suggestion (used by add/edit transaction JS preview)
+# ---------------------------------------------------------------------------
+
+@login_required
+def api_categorize(request):
+    """Lightweight JSON endpoint returning the category suggestion for a
+    transaction description.  Called client-side for the live preview box.
+
+    GET /api/categorize/?q=<description>
+    Returns: {category, subcategory, confidence, matching_method}
+    """
+    desc = request.GET.get("q", "").strip()
+    result = categorize_with_explanation(desc)
+    return JsonResponse({
+        "category":        result["category"],
+        "subcategory":     result["subcategory"],
+        "confidence":      result["confidence"],
+        "matching_method": result["matching_method"],
+    })
+
+
+# ---------------------------------------------------------------------------
+# Password Reset — Custom View with structured logging
+# ---------------------------------------------------------------------------
+
+class LedGioPasswordResetView(PasswordResetView):
+    """Wraps Django's PasswordResetView to add structured logging around
+    the email send step.  Never alters the reset logic itself.
+
+    Logs:
+      - The email address submitted
+      - Whether the address matched a user account
+      - SMTP success / full exception on failure
+    """
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get("email", "")
+        users = list(form.get_users(email))
+        if users:
+            logger.info(
+                "[password-reset] Email submitted: %s | Matched user: %s",
+                email,
+                users[0].username,
+            )
+        else:
+            logger.info(
+                "[password-reset] Email submitted: %s | No matching active user found",
+                email,
+            )
+
+        try:
+            response = super().form_valid(form)
+            if users:
+                logger.info(
+                    "[password-reset] Reset email dispatched successfully to: %s",
+                    email,
+                )
+            return response
+        except smtplib.SMTPAuthenticationError as exc:
+            logger.error(
+                "[password-reset] SMTP Authentication FAILED for %s: %s",
+                email, exc,
+            )
+            raise
+        except smtplib.SMTPException as exc:
+            logger.error(
+                "[password-reset] SMTP error sending to %s: %s",
+                email, exc,
+            )
+            raise
+        except Exception as exc:
+            logger.exception(
+                "[password-reset] Unexpected error sending reset email to %s",
+                email,
+            )
+            raise
+
+
+# ---------------------------------------------------------------------------
+# /test-email/ — Staff-only SMTP diagnostic view (Step 6 of audit)
+# ---------------------------------------------------------------------------
+
+@login_required
+def test_email_view(request):
+    """Staff-only diagnostic view.  Attempts a real send_mail() and returns
+    the result as JSON.  Remove or restrict this view after debugging.
+
+    GET /test-email/
+    Returns JSON: {ok: true} or {ok: false, error: "...", type: "..."}
+    """
+    if not request.user.is_staff:
+        return JsonResponse({"ok": False, "error": "Staff only"}, status=403)
+
+    recipient = request.GET.get("to") or request.user.email
+    if not recipient:
+        return JsonResponse({"ok": False, "error": "No recipient email address set on your account or ?to= param"}, status=400)
+
+    logger.info("[test-email] Sending test email to: %s", recipient)
+
+    try:
+        send_mail(
+            subject="LedGio SMTP Test",
+            message=(
+                "This is a test email from LedGio.\n"
+                f"Backend: {django_settings.EMAIL_BACKEND}\n"
+                f"Host:    {django_settings.EMAIL_HOST}:{django_settings.EMAIL_PORT}\n"
+                f"User:    {django_settings.EMAIL_HOST_USER}\n"
+            ),
+            from_email=django_settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[recipient],
+            fail_silently=False,
+        )
+        logger.info("[test-email] Test email sent successfully to: %s", recipient)
+        return JsonResponse({"ok": True, "message": f"Test email sent to {recipient}"})
+
+    except smtplib.SMTPAuthenticationError as exc:
+        logger.error("[test-email] SMTP Auth failed: %s", exc)
+        return JsonResponse({
+            "ok": False,
+            "error": str(exc),
+            "type": "SMTPAuthenticationError",
+            "fix": "Gmail App Password is expired or revoked. Go to myaccount.google.com/apppasswords to generate a new one, then update EMAIL_HOST_PASSWORD in .env",
+        }, status=500)
+
+    except smtplib.SMTPException as exc:
+        logger.error("[test-email] SMTP error: %s", exc)
+        return JsonResponse({"ok": False, "error": str(exc), "type": type(exc).__name__}, status=500)
+
+    except BadHeaderError as exc:
+        logger.error("[test-email] Bad header: %s", exc)
+        return JsonResponse({"ok": False, "error": str(exc), "type": "BadHeaderError"}, status=400)
+
+    except Exception as exc:
+        logger.exception("[test-email] Unexpected error")
+        return JsonResponse({"ok": False, "error": str(exc), "type": type(exc).__name__}, status=500)
 
 
 # ---------------------------------------------------------------------------
@@ -49,8 +195,16 @@ def dashboard(request):
     balance = get_balance(request.user)
     insights = get_insights(request.user)
     monthly_analytics = get_monthly_analytics(request.user)
-    recent_transactions = get_transactions(request.user)[:5]
+    recent_transactions = get_transactions(request.user, limit=5)
     savings_progress = get_savings_progress(request.user)
+    financial_alerts = get_financial_alerts(request.user, balance_data=balance)
+
+    # Count open support tickets for dashboard widget (staff only)
+    open_support_count = (
+        SupportRequest.objects.filter(status="open").count()
+        if request.user.is_staff
+        else 0
+    )
 
     return render(request, "dashboard.html", {
         "balance": balance,
@@ -58,7 +212,10 @@ def dashboard(request):
         "monthly_analytics": monthly_analytics,
         "recent_transactions": recent_transactions,
         "savings_progress": savings_progress,
+        "financial_alerts": financial_alerts,
+        "open_support_count": open_support_count,
     })
+
 
 
 # ---------------------------------------------------------------------------
@@ -294,7 +451,7 @@ def check_user_availability(request):
 
 @login_required
 def profile_view(request):
-    """Show the user's profile page with country and currency info."""
+    """Show and update the user's profile: info, picture, and password."""
 
     try:
         user_profile = request.user.profile
@@ -303,9 +460,109 @@ def profile_view(request):
 
     savings_progress = get_savings_progress(request.user)
 
+    profile_form = ProfileUpdateForm(
+        initial={"username": request.user.username, "email": request.user.email},
+        current_user=request.user,
+    )
+    password_form = PasswordChangeForm(user=request.user)
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+
+        # ── Update profile info ──────────────────────────────────────────────
+        if action == "update_profile":
+            profile_form = ProfileUpdateForm(
+                request.POST,
+                current_user=request.user,
+            )
+            if profile_form.is_valid():
+                request.user.username = profile_form.cleaned_data["username"]
+                request.user.email    = profile_form.cleaned_data["email"]
+                request.user.save(update_fields=["username", "email"])
+                messages.success(request, "Profile updated successfully.")
+                return redirect(reverse("profile"))
+            else:
+                for field, errs in profile_form.errors.items():
+                    for e in errs:
+                        messages.error(request, e)
+
+        # ── Upload / remove picture ──────────────────────────────────────────
+        elif action == "upload_picture":
+            if "profile_picture" in request.FILES:
+                pic = request.FILES["profile_picture"]
+                # Validate basic image type
+                if pic.content_type not in ("image/jpeg", "image/png", "image/gif", "image/webp"):
+                    messages.error(request, "Please upload a valid image (JPEG, PNG, GIF, WebP).")
+                else:
+                    # Remove old picture to save storage
+                    if user_profile.profile_picture:
+                        try:
+                            import os
+                            if os.path.isfile(user_profile.profile_picture.path):
+                                os.remove(user_profile.profile_picture.path)
+                        except Exception:
+                            pass
+                    user_profile.profile_picture = pic
+                    user_profile.save(update_fields=["profile_picture"])
+                    messages.success(request, "Profile picture updated.")
+            else:
+                messages.error(request, "No image file was selected.")
+            return redirect(reverse("profile"))
+
+        elif action == "remove_picture":
+            if user_profile.profile_picture:
+                try:
+                    import os
+                    if os.path.isfile(user_profile.profile_picture.path):
+                        os.remove(user_profile.profile_picture.path)
+                except Exception:
+                    pass
+                user_profile.profile_picture = None
+                user_profile.save(update_fields=["profile_picture"])
+                messages.success(request, "Profile picture removed.")
+            return redirect(reverse("profile"))
+
+        # ── Change password ──────────────────────────────────────────────────
+        elif action == "change_password":
+            password_form = PasswordChangeForm(request.POST, user=request.user)
+            if password_form.is_valid():
+                request.user.set_password(password_form.cleaned_data["new_password"])
+                request.user.save()
+                # Re-authenticate so session stays valid
+                update_session_auth_hash(request, request.user)
+                messages.success(request, "Password changed successfully.")
+                return redirect(reverse("profile"))
+            else:
+                for field, errs in password_form.errors.items():
+                    for e in errs:
+                        messages.error(request, e)
+
     return render(request, "profile.html", {
-        "user_profile": user_profile,
+        "user_profile":  user_profile,
         "savings_progress": savings_progress,
+        "profile_form":  profile_form,
+        "password_form": password_form,
+    })
+
+@require_POST
+@login_required
+def ajax_change_password(request):
+    """AJAX endpoint for changing password (no page reload)."""
+    password_form = PasswordChangeForm(request.POST, user=request.user)
+
+    if not password_form.is_valid():
+        return JsonResponse({
+            "success": False,
+            "errors": {field: errs[0] for field, errs in password_form.errors.items()},
+        })
+
+    request.user.set_password(password_form.cleaned_data["new_password"])
+    request.user.save()
+    update_session_auth_hash(request, request.user)
+
+    return JsonResponse({
+        "success": True,
+        "message": "Password changed successfully.",
     })
 
 
@@ -315,7 +572,7 @@ def profile_view(request):
 
 @login_required
 def savings_goal_view(request):
-    """Set or update the current month's savings goal."""
+    """Set or update the current month's savings goal (with name and deadline)."""
 
     now = timezone.now()
     current_month = now.replace(day=1).date()
@@ -337,9 +594,10 @@ def savings_goal_view(request):
                 goal.pk = existing_goal.pk
 
             goal.save()
+            goal_label = goal.goal_name or f"{now.strftime('%B %Y')} Goal"
             messages.success(
                 request,
-                f"Savings goal of {goal.target_amount} set for {now.strftime('%B %Y')}!"
+                f"Savings goal \u2018{goal_label}\u2019 set for {now.strftime('%B %Y')}!"
             )
             return redirect(reverse("balance"))
 
@@ -352,12 +610,58 @@ def savings_goal_view(request):
 
     savings_progress = get_savings_progress(request.user)
 
+    goal_status = "No Goal"
+    days_left = None
+
+    if existing_goal:
+
+        if existing_goal.deadline:
+            days_left = (existing_goal.deadline - date.today()).days
+
+        progress = savings_progress.get("progress_percent", 0)
+
+        if progress >= 100:
+            goal_status = "Achieved"
+
+        elif days_left is not None and days_left < 0:
+            goal_status = "Missed"
+
+        elif progress >= 75:
+            goal_status = "On Track"
+
+        else:
+            goal_status = "Needs Attention"
+
     return render(request, "savings_goal.html", {
         "form": form,
         "existing_goal": existing_goal,
         "savings_progress": savings_progress,
         "current_month": now.strftime("%B %Y"),
+        "goal_status": goal_status,
+        "days_left": days_left,
     })
+
+
+@login_required
+@require_POST
+def delete_goal_view(request):
+    """Delete the current month's savings goal (POST only)."""
+
+    now = timezone.now()
+    current_month = now.replace(day=1).date()
+
+    goal = SavingsGoal.objects.filter(
+        user=request.user, month=current_month
+    ).first()
+
+    if goal:
+        goal_label = goal.goal_name or f"{now.strftime('%B %Y')} Goal"
+        goal.delete()
+        messages.success(request, f"Goal \u2018{goal_label}\u2019 has been deleted.")
+    else:
+        messages.error(request, "No active goal found to delete.")
+
+    return redirect(reverse("savings_goal"))
 
 
 # ---------------------------------------------------------------------------
@@ -368,10 +672,12 @@ def auto_deactivate_inactive_users():
     """
     Deactivate non-staff users who haven't logged in for 6+ months.
 
-    NOTE: Ideally this should be a management command run via cron/celery,
-    not triggered on every admin page load. Kept inline for now to preserve
-    existing behaviour.
+    Throttled using cache so it runs at most once per hour.
     """
+    cache_key = "auto_deactivate_users_last_run"
+    if cache.get(cache_key):
+        return
+
     six_months_ago = timezone.now() - timedelta(days=180)
 
     count = User.objects.filter(
@@ -380,8 +686,11 @@ def auto_deactivate_inactive_users():
         last_login__lt=six_months_ago,
     ).update(is_active=False)
 
+    cache.set(cache_key, True, 3600)
+
     if count:
         logger.info("Auto-deactivated %d inactive user(s).", count)
+
 
 
 # ---------------------------------------------------------------------------

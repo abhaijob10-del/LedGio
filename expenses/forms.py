@@ -2,13 +2,14 @@
 Django forms for the expenses app.
 
 Provides proper server-side validation for transactions,
-user registration, and support requests.
+user registration, support requests, savings goals, and profile updates.
 """
 
 from decimal import Decimal, InvalidOperation
 
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth import password_validation
 
 from .models import Transaction, SupportRequest, SavingsGoal
 from .country_data import get_country_choices
@@ -109,17 +110,91 @@ class SupportRequestForm(forms.ModelForm):
 
 
 class SavingsGoalForm(forms.ModelForm):
-    """Form to create or update a monthly savings goal."""
+    """Form to create or update a monthly savings goal — extended with name and deadline."""
 
     class Meta:
         model = SavingsGoal
-        fields = ["target_amount"]
+        fields = ["goal_name", "target_amount", "deadline"]
+
+    goal_name = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Emergency Fund, Vacation, New Laptop"}),
+    )
+
+    deadline = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
 
     def clean_target_amount(self):
         amount = self.cleaned_data["target_amount"]
         if amount <= 0:
             raise forms.ValidationError("Target amount must be greater than zero.")
         return amount
+
+
+class ProfileUpdateForm(forms.Form):
+    """Validates profile updates — username, email, picture."""
+
+    username = forms.CharField(max_length=150, min_length=1)
+    email = forms.EmailField()
+
+    def __init__(self, *args, **kwargs):
+        self.current_user = kwargs.pop("current_user", None)
+        super().__init__(*args, **kwargs)
+
+    def clean_username(self):
+        username = self.cleaned_data["username"].strip()
+        qs = User.objects.filter(username=username)
+        if self.current_user:
+            qs = qs.exclude(pk=self.current_user.pk)
+        if qs.exists():
+            raise forms.ValidationError("That username is already taken.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip()
+        qs = User.objects.filter(email=email)
+        if self.current_user:
+            qs = qs.exclude(pk=self.current_user.pk)
+        if qs.exists():
+            raise forms.ValidationError("That email is already registered.")
+        return email
+
+
+class PasswordChangeForm(forms.Form):
+    """Secure password change — requires current password."""
+
+    current_password = forms.CharField(min_length=1)
+    new_password = forms.CharField(min_length=8)
+    confirm_password = forms.CharField(min_length=8)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+    def clean_current_password(self):
+        current = self.cleaned_data["current_password"]
+        if self.user and not self.user.check_password(current):
+            raise forms.ValidationError("Current password is incorrect.")
+        return current
+
+    def clean_new_password(self):
+        password = self.cleaned_data["new_password"]
+        if password.isdigit():
+            raise forms.ValidationError("Password cannot be all numbers.")
+        if self.user:
+            password_validation.validate_password(password, self.user)
+        return password
+
+    def clean(self):
+        cleaned = super().clean()
+        new_pw = cleaned.get("new_password")
+        confirm = cleaned.get("confirm_password")
+        if new_pw and confirm and new_pw != confirm:
+            raise forms.ValidationError("New passwords do not match.")
+        return cleaned
 
 
 class SupportReplyForm(forms.Form):
