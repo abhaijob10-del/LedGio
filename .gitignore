@@ -1,4 +1,23 @@
 .env
+.env.*
+*.pem
+*.key
+db.sqlite3
 __pycache__/
 *.pyc
-db.sqlite3
+media/
+staticfiles/
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Data fixtures and exports — keep out of version control
+data.json
+expenses.csv
+
+# OS artefacts
+.DS_Store
+Thumbs.db
